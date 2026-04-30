@@ -1,13 +1,39 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { View, StyleSheet, Text, Pressable, useWindowDimensions, PanResponder, Animated } from 'react-native';
 
-const SolarSystem = ({ planets, onPlanetPress }) => {
+const parseDiameter = (diameter) => {
+  const value = String(diameter).replace(/[^0-9]/g, '');
+  return Number(value) || 0;
+};
+
+const EARTH_DIAMETER_KM = 12742;
+const SCALE_EXPONENT = 0.58;
+
+const getVisualSize = (diameter) => {
+  const diameterKm = parseDiameter(diameter);
+  const ratio = Math.max(diameterKm / EARTH_DIAMETER_KM, 0.02);
+  const scaled = 32 * Math.pow(ratio, SCALE_EXPONENT);
+  return Math.max(8, Math.min(135, scaled));
+};
+
+const getMoonVisualSize = (moonDiameter, planetDiameter, planetSize) => {
+  const moonKm = parseDiameter(moonDiameter);
+  const planetKm = parseDiameter(planetDiameter);
+  // Use real diameter ratio for accurate proportions
+  const realRatio = planetKm > 0 ? moonKm / planetKm : 0.05;
+  const moonSize = planetSize * realRatio;
+  // Ensure tiny moons (Phobos, Deimos) remain visible
+  const minMoon = planetSize * 0.012;
+  return Math.max(moonSize, minMoon);
+};
+
+const SolarSystem = ({ planets, onPlanetPress, onMoonPress }) => {
   const { width, height } = useWindowDimensions();
   const selectedPlanet = useMemo(() => planets.find(p => p.selected), [planets]);
   
   const rotationX = useRef(new Animated.Value(0.4)).current;
   const rotationY = useRef(new Animated.Value(1.2)).current;
-  const zoom = useRef(new Animated.Value(0.9)).current;
+  const zoom = useRef(new Animated.Value(0.65)).current;
   const time = useRef(new Animated.Value(0)).current;
 
   const rotRef = useRef({ x: 0.4, y: 1.2, zoom: 0.9, time: 0 });
@@ -48,7 +74,7 @@ const SolarSystem = ({ planets, onPlanetPress }) => {
           );
           if (lastDistRef.current) {
             const diff = distance - lastDistRef.current;
-            rotRef.current.zoom = Math.max(0.2, Math.min(5, rotRef.current.zoom + diff * 0.005));
+            rotRef.current.zoom = Math.max(0.05, Math.min(5, rotRef.current.zoom + diff * 0.005));
           }
           lastDistRef.current = distance;
         } else {
@@ -85,7 +111,9 @@ const SolarSystem = ({ planets, onPlanetPress }) => {
       let x3d = 0, y3d = 0, z3d = 0;
       if (!p.isSun) {
         const distanceAU = p.distanceAU || 1;
-        const orbitRadius = 250 + 400 * Math.pow(distanceAU, 0.45);
+        const baseRadius = 260 + 420 * Math.pow(distanceAU, 0.45);
+        const innerBoost = distanceAU <= 1.6 ? 210 * distanceAU : 420;
+        const orbitRadius = baseRadius + innerBoost;
         const orbitalPeriod = (p.orbitalPeriod || 1) * 20000;
         const angle = (t / orbitalPeriod) + (p.initialAngle || 0);
         x3d = Math.cos(angle) * orbitRadius;
@@ -93,7 +121,7 @@ const SolarSystem = ({ planets, onPlanetPress }) => {
       }
 
       const p2d = project(x3d, y3d, z3d, curRot, curZoom);
-      const baseSize = p.isSun ? 70 : 32;
+      const baseSize = p.isSun ? 70 : getVisualSize(p.diameter);
       
       if (selectedPlanet && p.id === selectedPlanet.id) {
         return { ...p, x: centerX, y: centerY - 100, size: 240, zIndex: 1000, visible: true, scale: 1 };
@@ -113,6 +141,25 @@ const SolarSystem = ({ planets, onPlanetPress }) => {
       };
     });
   }, [selectedPlanet, width, height, _]);
+
+  const selectedPlanetData = selectedPlanet ? planetData.find((p) => p.id === selectedPlanet.id) : null;
+  const moonData = planetData
+    .filter((p) => p.visible && p.moonsInfo?.length)
+    .flatMap((planet) =>
+      planet.moonsInfo.map((moon, index) => {
+        const angle = rotRef.current.time / ((moon.orbitalPeriod || 1) * 5000) + index * 1.6;
+        const orbitRadius = planet.size * 2.2 + (moon.orbitRadius || 70);
+        const rawSize = getMoonVisualSize(moon.diameter, planet.diameter, planet.size, moon.name);
+        return {
+          ...moon,
+          planet,
+          x: planet.x + Math.cos(angle) * orbitRadius,
+          y: planet.y + Math.sin(angle) * orbitRadius,
+          size: rawSize,
+          zIndex: planet.zIndex + 1,
+        };
+      })
+    );
 
   return (
     <View style={styles.container} {...panResponder.panHandlers}>
@@ -141,6 +188,27 @@ const SolarSystem = ({ planets, onPlanetPress }) => {
               <View style={[styles.ring, { width: p.size * 2.4, height: p.size * 0.5, borderRadius: p.size, left: -p.size * 0.7 }]} />
             )}
           </View>
+        </Pressable>
+      ))}
+
+      {selectedPlanetData && moonData.map((moon) => (
+        <Pressable
+          key={moon.id}
+          onPress={() => onMoonPress?.(moon, selectedPlanet)}
+          style={[
+            styles.planet,
+            {
+              transform: [
+                { translateX: moon.x - moon.size / 2 },
+                { translateY: moon.y - moon.size / 2 }
+              ],
+              width: moon.size,
+              height: moon.size,
+              zIndex: moon.zIndex,
+            }
+          ]}
+        >
+          <View style={[styles.sphere, { backgroundColor: moon.color || '#E8E4DE', width: moon.size, height: moon.size, borderRadius: moon.size / 2 }]} />
         </Pressable>
       ))}
       

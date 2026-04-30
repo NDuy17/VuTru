@@ -1,0 +1,35 @@
+const Neptune = {
+  id: 8,
+  name: 'Hải Vương Tinh',
+  emoji: '♆',
+  color: '#3E54E8',
+  description: 'Hành tinh xanh thẳm xa xôi và lộng gió.',
+  type: 'planet',
+  mass: '1.02 × 10²⁶ kg',
+  diameter: '49,244 km',
+  climate: 'Gió mạnh nhất',
+  temperature: '-201°C',
+  distance: '30.1 AU',
+  distanceAU: 30.1,
+  inclination: 1.8,
+  orbitalPeriod: 164.8,
+  gravity: '11.15 m/s²',
+  moons: 14,
+  orbitRadius: 600,
+  initialAngle: Math.random() * Math.PI * 2,
+  selected: false,
+  moonsInfo: [
+    {
+      id: 'triton',
+      name: 'Triton',
+      emoji: '🔵',
+      color: '#6AA6EE',
+      description: 'Mặt trăng lớn nhất của Hải Vương Tinh với băng và khí quyển.',
+      diameter: '2,706 km',
+      distance: '354,800 km',
+      orbitalPeriod: -5.88,
+    },
+  ],
+};
+
+export default Neptune;
