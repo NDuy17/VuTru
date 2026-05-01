@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useMemo, useRef, memo } from 'react';
 import { View, StyleSheet, Text, Pressable, useWindowDimensions, PanResponder, Animated, Image, Easing } from 'react-native';
 import { SUN_TEXTURE, PLANET_TEXTURES, MOON_TEXTURES } from '../data/textures';
 
@@ -43,36 +43,24 @@ const textureMap = {
   'Mặt Trăng': MOON_TEXTURES.moon,
 };
 
-// 🌎 TextureSphere Component for Native 3D Simulation
-const TextureSphere = ({ size, texture, angle, isSun, color, opacity = 1 }) => {
-  const scrollAnim = useRef(new Animated.Value(0)).current;
+// 🌎 Optimized TextureSphere (Memoized for peak performance)
+const TextureSphere = memo(({ size, texture, angle, isSun, color }) => {
+  const scrollOffset = (angle % (Math.PI * 2)) * (size / Math.PI);
   
-  useEffect(() => {
-    const normalizedAngle = (angle % (Math.PI * 2)) / (Math.PI * 2);
-    scrollAnim.setValue(normalizedAngle);
-  }, [angle]);
-
-  const translateX = scrollAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: [0, -size * 2],
-  });
-
   return (
-    <View style={[styles.sphereContainer, { width: size, height: size, borderRadius: size / 2, opacity }]}>
+    <View style={[styles.sphereContainer, { width: size, height: size, borderRadius: size / 2 }]}>
       {texture ? (
-        <Animated.View style={[styles.textureRow, { width: size * 4, transform: [{ translateX }] }]}>
+        <View style={[styles.textureRow, { width: size * 4, transform: [{ translateX: -scrollOffset }] }]}>
           <Image source={{ uri: texture }} style={{ width: size * 2, height: size }} resizeMode="stretch" />
           <Image source={{ uri: texture }} style={{ width: size * 2, height: size }} resizeMode="stretch" />
-        </Animated.View>
+        </View>
       ) : (
         <View style={{ width: size, height: size, backgroundColor: color || '#444' }} />
       )}
-      
-      {/* ☀️ Sun Glow */}
       {isSun && <View style={[styles.sunGlow, { width: size * 1.8, height: size * 1.8, borderRadius: size * 0.9, left: -size * 0.4, top: -size * 0.4 }]} />}
     </View>
   );
-};
+});
 
 const SolarSystem = ({ planets, onPlanetPress, onMoonPress }) => {
   const { width, height } = useWindowDimensions();
@@ -94,8 +82,8 @@ const SolarSystem = ({ planets, onPlanetPress, onMoonPress }) => {
     let lastTime = 0;
     const animate = (now) => {
       const delta = now - lastTime;
-      // 🚀 Reduced FPS to 12 for system view for maximum smoothness
-      const targetFrameTime = 1000 / (selectedPlanetRef.current ? 25 : 12);
+      // 🚀 10 FPS for system view = Pure Butter Navigation
+      const targetFrameTime = 1000 / (selectedPlanetRef.current ? 25 : 10);
       
       if (delta >= targetFrameTime) {
         timeRef.current += delta;
@@ -226,7 +214,9 @@ const SolarSystem = ({ planets, onPlanetPress, onMoonPress }) => {
     return moonSources.map((moon, idx) => {
       const points = [];
       const step = 12; 
-      const relOrbitR = (p.isSun ? 0 : 80) + (p.size * 0.65) + (idx * 50);
+      // 🛰️ Fully proportional orbital path for Focus View
+      const relOrbitR = ((p.isSun ? 0 : 80) + (250 * 0.65) + (idx * 50)) * (rotRef.current.zoom / 1.0);
+      
       for (let i = 0; i <= step; i++) {
         const angle = (i / step) * Math.PI * 2;
         const ox = p.x + Math.cos(angle) * relOrbitR;
@@ -257,9 +247,9 @@ const SolarSystem = ({ planets, onPlanetPress, onMoonPress }) => {
 
       return moonSources.map((moon, i) => {
         const ma = (t * Math.PI * 2) / ((moon.orbitalPeriod || 1) * 100000) + (moon.initialAngle || 0);
-        // 🛰️ Optimized spacing for System View vs Focus View
+        // 🛰️ Fully proportional orbital distance for Focus View
         const relOrbitR = selectedPlanet 
-          ? (p.isSun ? 0 : 80) + (p.size * 0.65) + (i * 50)
+          ? ((p.isSun ? 0 : 80) + (250 * 0.65) + (i * 50)) * (rotRef.current.zoom / 1.0)
           : (p.isSun ? 0 : 35) + (p.size * 0.4) + (i * 10);
         
         let mx, my, zIndex;
@@ -288,17 +278,10 @@ const SolarSystem = ({ planets, onPlanetPress, onMoonPress }) => {
 
   return (
     <View style={styles.container} {...panResponder.panHandlers}>
-      {/* 🌌 Minimal Stars (Optimized) */}
-      <View style={StyleSheet.absoluteFill} pointerEvents="none">
-        <View style={styles.starLayer}>
-          {[...Array(6)].map((_, i) => (
-             <View key={i} style={[styles.star, { left: (i * 197) % width, top: (i * 313) % height }]} />
-          ))}
-        </View>
-      </View>
+      {/* 🌌 Background Stars removed for maximum mobile speed */}
 
       {/* 🛰️ Projected Orbits (Hidden during interaction for zero lag) */}
-      {!isInteracting && orbitPaths.map(orbit => (
+      {!isInteracting && !selectedPlanet && orbitPaths.map(orbit => (
         <View key={orbit.id} style={StyleSheet.absoluteFill} pointerEvents="none">
           {orbit.points.map((pt, i) => {
             if (i === 0) return null;
@@ -327,9 +310,12 @@ const SolarSystem = ({ planets, onPlanetPress, onMoonPress }) => {
       ))}
 
       {/* Planets & Moons Sorted by Depth */}
-      {[...planetData, ...moonData].filter(p => p.visible).sort((a,b) => a.zIndex - b.zIndex).map((obj, idx) => (
+      {[...planetData, ...moonData]
+        .filter(obj => obj.visible && (!obj.planet || !isInteracting))
+        .sort((a,b) => a.zIndex - b.zIndex)
+        .map((obj) => (
         <Pressable
-          key={`${obj.id}-${obj.name}-${idx}`}
+          key={obj.planet ? `moon-${obj.id}` : `planet-${obj.id}`}
           onPress={() => obj.planet ? onMoonPress?.(obj, obj.planet) : onPlanetPress(obj.id)}
           style={[
             styles.objContainer,
