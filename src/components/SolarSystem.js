@@ -250,7 +250,7 @@ const SolarSystem = ({ planets, onPlanetPress, onMoonPress }) => {
         // 🛰️ Fully proportional orbital distance for Focus View
         const relOrbitR = selectedPlanet 
           ? ((p.isSun ? 0 : 80) + (250 * 0.65) + (i * 50)) * (rotRef.current.zoom / 1.0)
-          : (p.isSun ? 0 : 35) + (p.size * 0.4) + (i * 10);
+          : (p.size * 0.7) + 15 + (i * 12); // 🚀 Ensure it's outside the planet
         
         let mx, my, zIndex;
 
