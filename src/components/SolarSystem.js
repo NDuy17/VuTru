@@ -247,10 +247,15 @@ const SolarSystem = ({ planets, onPlanetPress, onMoonPress }) => {
 
       return moonSources.map((moon, i) => {
         const ma = (t * Math.PI * 2) / ((moon.orbitalPeriod || 1) * 100000) + (moon.initialAngle || 0);
-        // 🛰️ Fully proportional orbital distance for Focus View
+        
+        // 🚀 Improved spacing for gas giants and Saturn's rings
+        let baseRelR = p.size * 1.6;
+        if (p.name === 'Thổ Tinh') baseRelR = p.size * 2.7;
+        if (p.name === 'Mộc Tinh') baseRelR = p.size * 1.9;
+
         const relOrbitR = selectedPlanet 
           ? ((p.isSun ? 0 : 80) + (250 * 0.65) + (i * 50)) * (rotRef.current.zoom / 1.0)
-          : (p.size * 0.7) + 15 + (i * 12); // 🚀 Ensure it's outside the planet
+          : baseRelR + (i * 15);
         
         let mx, my, zIndex;
 
@@ -269,7 +274,7 @@ const SolarSystem = ({ planets, onPlanetPress, onMoonPress }) => {
           zIndex = Math.floor(1000 - m2d.depth);
         }
 
-        const size = getMoonVisualSize(moon.diameter, p.diameter, p.size) * (selectedPlanet ? 0.85 : 0.5);
+        const size = getMoonVisualSize(moon.diameter, p.diameter, p.size) * (selectedPlanet ? 0.85 : 0.75);
 
         return { ...moon, x: mx, y: my, size, zIndex, texture: textureMap[moon.name] || MOON_TEXTURES.moon, angle: ma, planet: p, visible: true };
       });
