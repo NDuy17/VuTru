@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, Pressable, ScrollView, StyleSheet } from 'react-native';
+import { View, Text, Pressable, ScrollView, StyleSheet, Platform } from 'react-native';
 
 const SaturnDetails = ({ planet, onClose }) => (
   <View style={styles.infoCard}>
@@ -51,17 +51,29 @@ const StatItem = ({ label, value }) => (
 const styles = StyleSheet.create({
   infoCard: {
     position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    height: '55%',
     backgroundColor: 'rgba(10, 15, 30, 0.95)',
-    borderTopLeftRadius: 35,
-    borderTopRightRadius: 35,
     padding: 25,
-    borderTopWidth: 4,
-    borderTopColor: '#00d4ff',
     elevation: 20,
+    ...Platform.select({
+      web: {
+        bottom: 0,
+        left: 0,
+        right: 0,
+        height: '50%',
+        borderTopLeftRadius: 35,
+        borderTopRightRadius: 35,
+        borderTopWidth: 4,
+        borderTopColor: '#00d4ff',
+      },
+      default: {
+        top: 0,
+        right: 0,
+        bottom: 0,
+        width: '42%',
+        borderLeftWidth: 4,
+        borderLeftColor: '#00d4ff',
+      }
+    })
   },
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 15 },
   planetTitle: { fontSize: 28, fontWeight: 'bold', color: '#00d4ff' },

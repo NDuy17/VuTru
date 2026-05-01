@@ -39,6 +39,26 @@ const Jupiter = {
       distance: '670,900 km',
       orbitalPeriod: 3.55,
     },
+    {
+      id: 'ganymede',
+      name: 'Ganymede',
+      emoji: '🌕',
+      color: '#BDBAAB',
+      description: 'Mặt trăng lớn nhất trong hệ mặt trời.',
+      diameter: '5,268 km',
+      distance: '1,070,400 km',
+      orbitalPeriod: 7.15,
+    },
+    {
+      id: 'callisto',
+      name: 'Callisto',
+      emoji: '🌑',
+      color: '#8B8D8C',
+      description: 'Mặt trăng có nhiều miệng hố va chạm nhất.',
+      diameter: '4,821 km',
+      distance: '1,882,700 km',
+      orbitalPeriod: 16.69,
+    },
   ],
 };
 
