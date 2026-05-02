@@ -215,7 +215,7 @@ const SolarSystem = ({ planets, onPlanetPress, onMoonPress }) => {
       const points = [];
       const step = 12; 
       // 🛰️ Fully proportional orbital path for Focus View
-      const relOrbitR = ((p.isSun ? 0 : 80) + (250 * 0.65) + (idx * 50)) * (rotRef.current.zoom / 1.0);
+      const relOrbitR = ((p.isSun ? 0 : 40) + (250 * 0.55) + (idx * 40)) * (rotRef.current.zoom / 1.0);
       
       for (let i = 0; i <= step; i++) {
         const angle = (i / step) * Math.PI * 2;
@@ -248,21 +248,22 @@ const SolarSystem = ({ planets, onPlanetPress, onMoonPress }) => {
       return moonSources.map((moon, i) => {
         const ma = (t * Math.PI * 2) / ((moon.orbitalPeriod || 1) * 100000) + (moon.initialAngle || 0);
         
-        // 🚀 Improved spacing for gas giants and Saturn's rings
-        let baseRelR = p.size * 1.6;
-        if (p.name === 'Thổ Tinh') baseRelR = p.size * 2.7;
-        if (p.name === 'Mộc Tinh') baseRelR = p.size * 1.9;
+        // 🚀 Balanced spacing: Close to planet but clearing rings
+        const baseVisualSize = (p.isSun ? 110 : getVisualSize(p.diameter) * 0.8);
+        let baseRelR = baseVisualSize * 1.5;
+        if (p.name === 'Thổ Tinh') baseRelR = baseVisualSize * 2.6;
+        if (p.name === 'Mộc Tinh') baseRelR = baseVisualSize * 1.8;
 
         const relOrbitR = selectedPlanet 
-          ? ((p.isSun ? 0 : 80) + (250 * 0.65) + (i * 50)) * (rotRef.current.zoom / 1.0)
-          : baseRelR + (i * 15);
+          ? ((p.isSun ? 0 : 40) + (250 * 0.55) + (i * 40)) * (rotRef.current.zoom / 1.0)
+          : baseRelR + (i * 20);
         
         let mx, my, zIndex;
 
         if (selectedPlanet) {
           mx = p.x + Math.cos(ma) * relOrbitR;
           my = p.y + Math.sin(ma) * relOrbitR * moonTilt;
-          zIndex = p.zIndex - Math.floor(Math.sin(ma) * 100);
+          zIndex = p.zIndex + Math.floor(Math.sin(ma) * 100);
         } else {
           const a_planet = (t * Math.PI * 2) / ((p.orbitalPeriod || 1) * 100000) + (p.initialAngle || 0);
           const px3d = Math.cos(a_planet) * p.orbitRadius;
