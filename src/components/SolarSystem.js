@@ -2,6 +2,9 @@ import React, { useState, useEffect, useMemo, useRef, memo } from 'react';
 import { View, StyleSheet, Text, Pressable, useWindowDimensions, PanResponder, Animated, Image, Easing } from 'react-native';
 import { SUN_TEXTURE, PLANET_TEXTURES, MOON_TEXTURES } from '../data/textures';
 
+const EARTH_CONTINENTS_TEXTURE = 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c0/Equirectangular_projection_world_map_without_borders.svg/2560px-Equirectangular_projection_world_map_without_borders.svg.png';
+const EARTH_COUNTRIES_TEXTURE = 'https://upload.wikimedia.org/wikipedia/commons/thumb/b/b0/World_location_map_%28equirectangular_180%29.svg/2560px-World_location_map_%28equirectangular_180%29.svg.png';
+
 const parseDiameter = (diameter) => {
   const value = String(diameter).replace(/[^0-9]/g, '');
   return Number(value) || 0;
@@ -62,7 +65,7 @@ const TextureSphere = memo(({ size, texture, angle, isSun, color }) => {
   );
 });
 
-const SolarSystem = ({ planets, onPlanetPress, onMoonPress }) => {
+const SolarSystem = ({ planets, onPlanetPress, onMoonPress, explorationMode = false, earthMapMode = null }) => {
   const { width, height } = useWindowDimensions();
   const selectedPlanet = useMemo(() => planets.find(p => p.selected), [planets]);
   
@@ -72,8 +75,15 @@ const SolarSystem = ({ planets, onPlanetPress, onMoonPress }) => {
   const [_, setUpdateTrigger] = useState(0);
   const animationFrameId = useRef(null);
   const selectedPlanetRef = useRef(selectedPlanet);
+  const focusSpinRef = useRef(0);
+  const lastPanRef = useRef({ dx: 0, dy: 0 });
 
   useEffect(() => { selectedPlanetRef.current = selectedPlanet; }, [selectedPlanet]);
+  useEffect(() => {
+    if (!selectedPlanet || !explorationMode) {
+      focusSpinRef.current = 0;
+    }
+  }, [selectedPlanet, explorationMode]);
 
   const isInteractingRef = useRef(false);
   const [isInteracting, setIsInteracting] = useState(false);
@@ -103,8 +113,13 @@ const SolarSystem = ({ planets, onPlanetPress, onMoonPress }) => {
       onPanResponderGrant: () => {
         isInteractingRef.current = true;
         setIsInteracting(true);
+        lastPanRef.current = { dx: 0, dy: 0 };
       },
       onPanResponderMove: (evt, gestureState) => {
+        const deltaDx = gestureState.dx - lastPanRef.current.dx;
+        const deltaDy = gestureState.dy - lastPanRef.current.dy;
+        lastPanRef.current = { dx: gestureState.dx, dy: gestureState.dy };
+
         const touches = evt.nativeEvent.touches;
         if (touches.length === 2) {
           const t1 = touches[0];
@@ -116,8 +131,13 @@ const SolarSystem = ({ planets, onPlanetPress, onMoonPress }) => {
           }
           lastDistRef.current = dist;
         } else {
-          rotRef.current.y += gestureState.dx * (selectedPlanet ? 0.0004 : 0.0006);
-          rotRef.current.x += gestureState.dy * (selectedPlanet ? 0.0004 : 0.0006);
+          if (selectedPlanet && explorationMode) {
+            // In explore mode, drag rotates only focused planet texture.
+            focusSpinRef.current += deltaDx * 0.02;
+          } else {
+            rotRef.current.y += deltaDx * (selectedPlanet ? 0.004 : 0.006);
+            rotRef.current.x += deltaDy * (selectedPlanet ? 0.004 : 0.006);
+          }
         }
       },
       onPanResponderRelease: () => { 
@@ -163,6 +183,7 @@ const SolarSystem = ({ planets, onPlanetPress, onMoonPress }) => {
       if (selectedPlanet && p.id === selectedPlanet.id) {
         // 🔍 Zoom support in focus mode: size scales directly with global zoom
         const focusSize = 250 * (zoom / 1.0); 
+        const lockedAngle = (p.initialAngle || 0) + focusSpinRef.current;
         return { 
           ...p, 
           x: width * 0.34, 
@@ -170,8 +191,12 @@ const SolarSystem = ({ planets, onPlanetPress, onMoonPress }) => {
           size: focusSize, 
           zIndex: 2000, 
           visible: true, 
-          angle: a, 
-          texture: textureMap[p.name], 
+          angle: explorationMode ? lockedAngle : a, 
+          texture: p.id === 3 && earthMapMode === 'continents'
+            ? EARTH_CONTINENTS_TEXTURE
+            : p.id === 3 && earthMapMode === 'countries'
+              ? EARTH_COUNTRIES_TEXTURE
+              : textureMap[p.name], 
           orbitRadius 
         };
       }
@@ -186,7 +211,7 @@ const SolarSystem = ({ planets, onPlanetPress, onMoonPress }) => {
         visible: true, angle: a, texture: textureMap[p.name], orbitRadius
       };
     });
-  }, [selectedPlanet, width, height, _]);
+  }, [selectedPlanet, width, height, explorationMode, earthMapMode, _]);
 
   // 🛰️ Synchronized Orbits (Super Optimized)
   const orbitPaths = useMemo(() => {
@@ -215,7 +240,8 @@ const SolarSystem = ({ planets, onPlanetPress, onMoonPress }) => {
       const points = [];
       const step = 12; 
       // 🛰️ Fully proportional orbital path for Focus View
-      const relOrbitR = ((p.isSun ? 0 : 40) + (250 * 0.55) + (idx * 40)) * (rotRef.current.zoom / 1.0);
+      const focusMoonSpacing = explorationMode ? 1.7 : 1;
+      const relOrbitR = ((p.isSun ? 0 : 40) + (250 * 0.55) + (idx * 40)) * (rotRef.current.zoom / 1.0) * focusMoonSpacing;
       
       for (let i = 0; i <= step; i++) {
         const angle = (i / step) * Math.PI * 2;
@@ -225,7 +251,7 @@ const SolarSystem = ({ planets, onPlanetPress, onMoonPress }) => {
       }
       return { id: `moon-orbit-${moon.id}`, points, type: 'moon' };
     });
-  }, [planetData, selectedPlanet, _]);
+  }, [planetData, selectedPlanet, explorationMode, _]);
 
   const moonData = useMemo(() => {
     const { x, y, zoom } = rotRef.current;
@@ -254,8 +280,9 @@ const SolarSystem = ({ planets, onPlanetPress, onMoonPress }) => {
         if (p.name === 'Thổ Tinh') baseRelR = baseVisualSize * 2.6;
         if (p.name === 'Mộc Tinh') baseRelR = baseVisualSize * 1.8;
 
+        const focusMoonSpacing = explorationMode ? 1.7 : 1;
         const relOrbitR = selectedPlanet 
-          ? ((p.isSun ? 0 : 40) + (250 * 0.55) + (i * 40)) * (rotRef.current.zoom / 1.0)
+          ? ((p.isSun ? 0 : 40) + (250 * 0.55) + (i * 40)) * (rotRef.current.zoom / 1.0) * focusMoonSpacing
           : baseRelR + (i * 20);
         
         let mx, my, zIndex;
@@ -280,7 +307,7 @@ const SolarSystem = ({ planets, onPlanetPress, onMoonPress }) => {
         return { ...moon, x: mx, y: my, size, zIndex, texture: textureMap[moon.name] || MOON_TEXTURES.moon, angle: ma, planet: p, visible: true };
       });
     });
-  }, [planetData, selectedPlanet, _]);
+  }, [planetData, selectedPlanet, explorationMode, _]);
 
   return (
     <View style={styles.container} {...panResponder.panHandlers}>

@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, Pressable, ScrollView, StyleSheet, Platform } from 'react-native';
 
-const EarthDetails = ({ planet, onClose }) => (
+const EarthDetails = ({ planet, onClose, showExploreButton, isExploreMode, onToggleExplore }) => (
   <View style={styles.infoCard}>
     <View style={styles.header}>
       <Text style={styles.planetTitle}>{planet.emoji} {planet.name}</Text>
@@ -40,6 +40,12 @@ const EarthDetails = ({ planet, onClose }) => (
       )}
     </ScrollView>
 
+    {showExploreButton && (
+      <Pressable style={styles.exploreButton} onPress={onToggleExplore}>
+        <Text style={styles.exploreButtonText}>{isExploreMode ? 'Thoát khám phá' : 'Khám phá'}</Text>
+      </Pressable>
+    )}
+
     <Pressable onPress={onClose} style={styles.backButton}>
       <Text style={styles.backButtonText}>QUAY LẠI HỆ MẶT TRỜI</Text>
     </Pressable>
@@ -61,14 +67,15 @@ const styles = StyleSheet.create({
     elevation: 20,
     ...Platform.select({
       web: {
-        bottom: 0,
-        left: 0,
-        right: 0,
-        height: '50%',
-        borderTopLeftRadius: 35,
-        borderTopRightRadius: 35,
-        borderTopWidth: 4,
-        borderTopColor: '#00d4ff',
+        top: 14,
+        right: 14,
+        bottom: 14,
+        width: '33%',
+        minWidth: 360,
+        maxWidth: 460,
+        borderRadius: 24,
+        borderWidth: 2,
+        borderColor: '#00d4ff66',
       },
       default: {
         top: 0,
@@ -115,6 +122,19 @@ const styles = StyleSheet.create({
   moonDescription: { color: '#ccc', fontSize: 12, marginTop: 2, lineHeight: 18 },
   moonDetailsGrid: { marginTop: 10, paddingLeft: 10 },
   moonDetail: { color: '#ccc', fontSize: 12, marginTop: 4 },
+  exploreButton: {
+    backgroundColor: 'rgba(0, 140, 255, 0.92)',
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderRadius: 10,
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  exploreButtonText: {
+    color: '#fff',
+    fontWeight: '700',
+    fontSize: 12,
+  },
   backButton: {
     backgroundColor: '#00d4ff22',
     padding: 18,

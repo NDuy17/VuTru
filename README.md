@@ -58,6 +58,34 @@ npm run android
 npm run web
 ```
 
+## 🍃 Kết Nối MongoDB (Local)
+
+Project hiện đã có backend trong thư mục `server/` để lấy dữ liệu hành tinh từ MongoDB.
+
+### 1) Cài dependencies backend
+```bash
+npm run server:install
+```
+
+### 2) Cấu hình môi trường backend
+- Copy `server/.env.example` thành `server/.env`
+- Đảm bảo `MONGODB_URI` trỏ tới MongoDB local, mặc định:
+  - `mongodb://127.0.0.1:27017/vutru`
+
+### 3) Chạy backend API
+```bash
+npm run server:dev
+```
+
+Backend sẽ tự seed dữ liệu hành tinh lần đầu nếu collection đang trống.
+
+### 4) Cấu hình app trỏ API (nếu cần)
+- Mặc định:
+  - Android emulator: `http://10.0.2.2:5000`
+  - iOS simulator/Web: `http://localhost:5000`
+- Có thể override bằng biến môi trường Expo:
+  - `EXPO_PUBLIC_API_URL=http://<your-ip>:5000`
+
 ## 📚 Redux Architecture
 
 ### Store Structure:
@@ -99,7 +127,6 @@ npm run web
 
 ### Redux Actions:
 - `selectPlanet(id)`: Chọn một hành tinh
-- `deselectPlanet()`: Bỏ chọn hành tinh hiện tại
 
 ## 🎨 Styling
 

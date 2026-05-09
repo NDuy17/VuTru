@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
 
-const MoonDetails = ({ moon, planet, onClose }) => {
+const MoonDetails = ({ moon, planet, onClose, showExploreButton, isExploreMode, onToggleExplore }) => {
   return (<View style={styles.container}>
 
 
