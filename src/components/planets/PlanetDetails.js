@@ -1,6 +1,7 @@
 import React from 'react';
 import { Platform, Pressable, StyleSheet, Text, View, ScrollView, Image } from 'react-native';
 import { PLANET_TEXTURES } from '../../data/textures';
+import countries from '../../data/countries';
 import SunDetails from './SunDetails';
 import MercuryDetails from './MercuryDetails';
 import VenusDetails from './VenusDetails';
@@ -124,14 +125,26 @@ const CONTINENT_DATA = [
   },
 ];
 
+const COUNTRY_INFO_MAP = countries.reduce((map, country) => {
+  map[country.nameVi] = country;
+  map[country.nameEn] = country;
+  return map;
+}, {});
+
 const EarthExplorePanel = ({ onBack, onClose }) => {
   const [selectedContinent, setSelectedContinent] = React.useState(null);
+  const [expandedCountry, setExpandedCountry] = React.useState(null);
 
   const continent = CONTINENT_DATA.find((item) => item.id === selectedContinent);
 
   React.useEffect(() => {
     setSelectedContinent(null);
+    setExpandedCountry(null);
   }, []);
+
+  const toggleCountry = (country) => {
+    setExpandedCountry((current) => (current === country ? null : country));
+  };
 
   return (
     <View style={styles.exploreContainer}>
@@ -186,11 +199,35 @@ const EarthExplorePanel = ({ onBack, onClose }) => {
             <Text style={styles.sectionTitle}>{continent.name}</Text>
             <Text style={styles.sectionDescription}>{continent.description}</Text>
             <View style={styles.countryList}>
-              {continent.countries.map((country) => (
-                <View key={country} style={styles.countryItem}>
-                  <Text style={styles.countryText}>{country}</Text>
-                </View>
-              ))}
+              {continent.countries.map((country) => {
+                const expanded = expandedCountry === country;
+                const details = COUNTRY_INFO_MAP[country];
+                return (
+                  <View key={country} style={styles.countryBlock}>
+                    <Pressable
+                      style={[
+                        styles.countryItem,
+                        expanded && styles.countryItemExpanded,
+                      ]}
+                      onPress={() => toggleCountry(country)}
+                    >
+                      <Text style={styles.countryText}>{country}</Text>
+                      <Text style={styles.countryArrow}>{expanded ? '▲' : '▼'}</Text>
+                    </Pressable>
+                    {expanded && (
+                      <View style={styles.countryDetailPanel}>
+                        <Text style={styles.detailRow}><Text style={styles.detailLabel}>Tên tiếng Anh: </Text>{details?.nameEn || country}</Text>
+                        <Text style={styles.detailRow}><Text style={styles.detailLabel}>Thủ đô: </Text>{details?.capital || 'Đang cập nhật'}</Text>
+                        <Text style={styles.detailRow}><Text style={styles.detailLabel}>Châu lục: </Text>{details?.continent || continent.name}</Text>
+                        <Text style={styles.detailRow}><Text style={styles.detailLabel}>Vị trí: </Text>{details?.location || continent.name}</Text>
+                        <Text style={styles.detailRow}><Text style={styles.detailLabel}>Diện tích: </Text>{details?.area ? `${details.area.toLocaleString('vi-VN')} km²` : 'Đang cập nhật'}</Text>
+                        <Text style={styles.detailRow}><Text style={styles.detailLabel}>Dân số: </Text>{details?.population ? details.population.toLocaleString('vi-VN') : 'Đang cập nhật'}</Text>
+                        <Text style={styles.detailRow}><Text style={styles.detailLabel}>Múi giờ: </Text>{details?.timezone || 'Đang cập nhật'}</Text>
+                      </View>
+                    )}
+                  </View>
+                );
+              })}
             </View>
           </>
         ) : (
@@ -344,15 +381,47 @@ const styles = StyleSheet.create({
   countryList: {
     flexDirection: 'column',
   },
+  countryBlock: {
+    marginBottom: 10,
+  },
   countryItem: {
     backgroundColor: 'rgba(0, 77, 145, 0.85)',
-    padding: 10,
-    borderRadius: 10,
-    marginBottom: 8,
+    padding: 12,
+    borderRadius: 12,
+    marginBottom: 4,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  countryItemExpanded: {
+    backgroundColor: 'rgba(0, 120, 220, 0.95)',
   },
   countryText: {
     color: '#f4fbff',
+    fontSize: 15,
+    fontWeight: '700',
+  },
+  countryArrow: {
+    color: '#b8e7ff',
     fontSize: 14,
+    fontWeight: '800',
+  },
+  countryDetailPanel: {
+    backgroundColor: 'rgba(6, 26, 55, 0.92)',
+    borderRadius: 12,
+    padding: 12,
+    marginTop: 4,
+    borderWidth: 1,
+    borderColor: '#1470d9',
+  },
+  detailRow: {
+    color: '#d9e9ff',
+    fontSize: 13,
+    marginBottom: 6,
+    lineHeight: 18,
+  },
+  detailLabel: {
+    color: '#8dd8ff',
     fontWeight: '700',
   },
   backLink: {
