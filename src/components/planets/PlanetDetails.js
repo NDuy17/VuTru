@@ -263,7 +263,7 @@ const PlanetDetails = ({
       <SpecificDetails 
         planet={planet} 
         onClose={onClose}
-        showExploreButton={isEarth}
+        showExploreButton={true}
         isExploreMode={isExploreMode}
         onToggleExplore={onToggleExplore}
       />
@@ -438,9 +438,6 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     width: '100%',
     alignItems: 'center',
-  },
-  earthButton: {
-    backgroundColor: 'rgba(0, 100, 185, 0.82)',
   },
   activeButton: {
     backgroundColor: 'rgba(0, 180, 255, 0.96)',
