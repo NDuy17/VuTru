@@ -12,7 +12,6 @@ import JupiterDetails from './JupiterDetails';
 import SaturnDetails from './SaturnDetails';
 import UranusDetails from './UranusDetails';
 import NeptuneDetails from './NeptuneDetails';
-import { getContinentImage } from '../../constants/continentImages';
 
 
 const detailMap = {
@@ -157,10 +156,12 @@ const EarthExplorePanel = React.memo(({ onBack, onClose }) => {
 
   const handleClearContinent = useCallback(() => {
     setSelectedContinent(null);
+    setExpandedCountry(null);
   }, []);
 
   const handleSelectContinent = useCallback((id) => {
     setSelectedContinent(id);
+    setExpandedCountry(null);
   }, []);
 
   return (
@@ -181,6 +182,7 @@ const EarthExplorePanel = React.memo(({ onBack, onClose }) => {
         </Pressable>
       </View>
 
+      {!continent && (
       <View style={styles.mapPreviewContainer}>
         <Image
           source={{ uri: continent ? getContinentImage(continent.name) : PLANET_TEXTURES.earth }}
@@ -193,8 +195,11 @@ const EarthExplorePanel = React.memo(({ onBack, onClose }) => {
           {continent ? `Bản đồ ${continent.name}` : 'Bản đồ hiện giờ'}
         </Text>
       </View>
+      )}
 
       <ScrollView style={styles.exploreContent}>
+        {!continent && (
+          <>
         <Text style={styles.sectionTitle}>Các châu lục</Text>
         <View style={styles.continentList}>
           {CONTINENT_DATA.map((item) => {
@@ -220,6 +225,9 @@ const EarthExplorePanel = React.memo(({ onBack, onClose }) => {
             );
           })}
         </View>
+
+          </>
+        )}
 
         {continent ? (
           <>
