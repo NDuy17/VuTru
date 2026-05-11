@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useMemo, useRef, memo, useCallback } from 'react';
-import { View, StyleSheet, Text, Pressable, useWindowDimensions, PanResponder, Animated, Image, Easing } from 'react-native';
+import { View, StyleSheet, Text, Pressable, useWindowDimensions, PanResponder, Image } from 'react-native';
 import PropTypes from 'prop-types';
 import { ANIMATION, PLANET_SIZING, PATTERNS, RESOURCES } from '../constants';
+import { SUN_TEXTURE, PLANET_TEXTURES, MOON_TEXTURES } from '../data/textures';
 
 const EARTH_CONTINENTS_TEXTURE = RESOURCES.EARTH_CONTINENTS_MAP;
 const EARTH_COUNTRIES_TEXTURE = RESOURCES.EARTH_COUNTRIES_MAP;
@@ -89,8 +90,20 @@ const TextureSphere = memo(({ size, texture, angle, isSun, color }) => {
     <View style={[styles.sphereContainer, { width: size, height: size, borderRadius: size / 2 }]}>
       {texture ? (
         <View style={[styles.textureRow, { width: size * 4, transform: [{ translateX: -scrollOffset }] }]}>
-          <Image source={{ uri: texture }} style={{ width: size * 2, height: size }} resizeMode="stretch" />
-          <Image source={{ uri: texture }} style={{ width: size * 2, height: size }} resizeMode="stretch" />
+          <Image
+            source={{ uri: texture }}
+            style={{ width: size * 2, height: size }}
+            resizeMode="stretch"
+            accessible={true}
+            accessibilityLabel="Celestial body texture"
+          />
+          <Image
+            source={{ uri: texture }}
+            style={{ width: size * 2, height: size }}
+            resizeMode="stretch"
+            accessible={true}
+            accessibilityLabel="Celestial body texture continuation"
+          />
         </View>
       ) : (
         <View style={{ width: size, height: size, backgroundColor: color || '#444' }} />
@@ -128,7 +141,7 @@ TextureSphere.defaultProps = {
  * @param {string|null} [props.earthMapMode] - Current Earth map mode (continents/countries)
  * @returns {React.ReactNode} Interactive solar system UI
  */
-const SolarSystem = ({ planets, onPlanetPress, onMoonPress, explorationMode = false, earthMapMode = null }) => {
+const SolarSystem = memo(({ planets, onPlanetPress, onMoonPress, explorationMode = false, earthMapMode = null }) => {
   const { width, height } = useWindowDimensions();
   const selectedPlanet = useMemo(() => planets.find(p => p.selected), [planets]);
   
@@ -372,6 +385,14 @@ const SolarSystem = ({ planets, onPlanetPress, onMoonPress, explorationMode = fa
     });
   }, [planetData, selectedPlanet, explorationMode, _]);
 
+  const handleObjectPress = useCallback((obj) => {
+    if (obj.planet) {
+      onMoonPress?.(obj, obj.planet);
+      return;
+    }
+    onPlanetPress(obj.id);
+  }, [onMoonPress, onPlanetPress]);
+
   return (
     <View style={styles.container} {...panResponder.panHandlers}>
       {/* 🌌 Background Stars removed for maximum mobile speed */}
@@ -412,7 +433,7 @@ const SolarSystem = ({ planets, onPlanetPress, onMoonPress, explorationMode = fa
         .map((obj) => (
         <Pressable
           key={obj.planet ? `moon-${obj.id}` : `planet-${obj.id}`}
-          onPress={() => obj.planet ? onMoonPress?.(obj, obj.planet) : onPlanetPress(obj.id)}
+          onPress={() => handleObjectPress(obj)}
           style={[
             styles.objContainer,
             {
@@ -423,6 +444,9 @@ const SolarSystem = ({ planets, onPlanetPress, onMoonPress, explorationMode = fa
               zIndex: obj.zIndex,
             }
           ]}
+          accessibilityRole="button"
+          accessibilityLabel={obj.planet ? `${obj.name} moon` : `${obj.name} planet`}
+          accessibilityHint="Open detail panel"
         >
           <TextureSphere 
             size={obj.size} 
@@ -439,7 +463,9 @@ const SolarSystem = ({ planets, onPlanetPress, onMoonPress, explorationMode = fa
       ))}
     </View>
   );
-};
+});
+
+SolarSystem.displayName = 'SolarSystem';
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#00040a' },

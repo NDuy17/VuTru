@@ -40,11 +40,17 @@ StatItem.defaultProps = {
  * @param {Function} [props.onToggleExplore] - Toggle explore mode callback
  * @returns {React.ReactNode} Earth details UI
  */
-const EarthDetails = ({ planet, onClose, showExploreButton, isExploreMode, onToggleExplore }) => (
+const EarthDetails = memo(({ planet, onClose, showExploreButton, isExploreMode, onToggleExplore }) => (
   <View style={styles.infoCard}>
     <View style={styles.header}>
       <Text style={styles.planetTitle}>{planet.emoji} {planet.name}</Text>
-      <Pressable onPress={onClose} style={styles.closeBtn}>
+      <Pressable 
+        onPress={onClose} 
+        style={styles.closeBtn}
+        accessibilityRole="button"
+        accessibilityLabel="Đóng"
+        accessibilityHint="Đóng thông tin chi tiết của Trái Đất"
+      >
         <Text style={styles.closeText}>✕</Text>
       </Pressable>
     </View>
@@ -80,16 +86,28 @@ const EarthDetails = ({ planet, onClose, showExploreButton, isExploreMode, onTog
     </ScrollView>
 
     {showExploreButton && (
-      <Pressable style={styles.exploreButton} onPress={onToggleExplore}>
+      <Pressable 
+        style={styles.exploreButton} 
+        onPress={onToggleExplore}
+        accessibilityRole="button"
+        accessibilityLabel={isExploreMode ? 'Thoát khám phá' : 'Khám phá'}
+        accessibilityHint="Bật hoặc tắt chế độ khám phá các châu lục"
+      >
         <Text style={styles.exploreButtonText}>{isExploreMode ? 'Thoát khám phá' : 'Khám phá'}</Text>
       </Pressable>
     )}
 
-    <Pressable onPress={onClose} style={styles.backButton}>
+    <Pressable 
+      onPress={onClose} 
+      style={styles.backButton}
+      accessibilityRole="button"
+      accessibilityLabel="Quay lại"
+      accessibilityHint="Quay lại màn hình hệ mặt trời"
+    >
       <Text style={styles.backButtonText}>QUAY LẠI HỆ MẶT TRỜI</Text>
     </Pressable>
   </View>
-);
+));
 
 
 
@@ -180,6 +198,7 @@ const styles = StyleSheet.create({
   backButtonText: { color: '#00d4ff', fontWeight: 'bold', fontSize: 14 },
 });
 
+EarthDetails.displayName = 'EarthDetails';
 EarthDetails.propTypes = {
   planet: PropTypes.shape({
     id: PropTypes.number,

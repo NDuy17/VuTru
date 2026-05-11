@@ -17,7 +17,13 @@ const SunDetails = memo(({ planet, onClose, showExploreButton, isExploreMode, on
   <View style={styles.infoCard}>
     <View style={styles.header}>
       <Text style={styles.planetTitle}>{planet.emoji} {planet.name}</Text>
-      <Pressable onPress={onClose} style={styles.closeBtn}>
+      <Pressable
+        onPress={onClose}
+        style={styles.closeBtn}
+        accessibilityRole="button"
+        accessibilityLabel="Đóng"
+        accessibilityHint="Đóng thông tin chi tiết"
+      >
         <Text style={styles.closeText}>✕</Text>
       </Pressable>
     </View>
@@ -35,7 +41,13 @@ const SunDetails = memo(({ planet, onClose, showExploreButton, isExploreMode, on
       </View>
     </ScrollView>
 
-    <Pressable onPress={onClose} style={styles.backButton}>
+    <Pressable
+      onPress={onClose}
+      style={styles.backButton}
+      accessibilityRole="button"
+      accessibilityLabel="Quay lại"
+      accessibilityHint="Quay lại màn hình hệ mặt trời"
+    >
       <Text style={styles.backButtonText}>QUAY LẠI HỆ MẶT TRỜI</Text>
     </Pressable>
   </View>

@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { memo, useCallback, useMemo } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
+import PropTypes from 'prop-types';
 import { PLANET_TEXTURES } from '../data/textures';
 
 const mapConfig = {
@@ -14,11 +15,32 @@ const mapConfig = {
   },
 };
 
-const EarthMapPanel = ({ mode, onModeChange, onClose }) => {
-  const config = mapConfig[mode] || mapConfig.continents;
-  const mapUrl = mode === 'countries'
-    ? `https://www.openstreetmap.org/export/embed.html?bbox=${encodeURIComponent(config.bbox)}&layer=mapnik`
-    : null;
+/**
+ * EarthMapPanel Component
+ * Displays the web-only Earth map overlay for continent and country modes.
+ * @component
+ * @param {Object} props - Component props
+ * @param {string} props.mode - Active map mode
+ * @param {Function} props.onModeChange - Callback when the map mode changes
+ * @param {Function} props.onClose - Callback when the panel closes
+ * @returns {React.ReactNode} Earth map panel UI
+ */
+const EarthMapPanel = memo(({ mode, onModeChange, onClose }) => {
+  const config = useMemo(() => mapConfig[mode] || mapConfig.continents, [mode]);
+  const mapUrl = useMemo(
+    () => mode === 'countries'
+      ? `https://www.openstreetmap.org/export/embed.html?bbox=${encodeURIComponent(config.bbox)}&layer=mapnik`
+      : null,
+    [config.bbox, mode]
+  );
+
+  const handleContinentsMode = useCallback(() => {
+    onModeChange?.('continents');
+  }, [onModeChange]);
+
+  const handleCountriesMode = useCallback(() => {
+    onModeChange?.('countries');
+  }, [onModeChange]);
 
   return (
     <View style={styles.container}>
@@ -30,17 +52,29 @@ const EarthMapPanel = ({ mode, onModeChange, onClose }) => {
         <View style={styles.actions}>
           <Pressable
             style={[styles.modeButton, mode === 'continents' && styles.modeButtonActive]}
-            onPress={() => onModeChange?.('continents')}
+            onPress={handleContinentsMode}
+            accessibilityRole="button"
+            accessibilityLabel="Chau luc"
+            accessibilityHint="Chuyen sang ban do chau luc"
           >
             <Text style={styles.modeButtonText}>Chau luc</Text>
           </Pressable>
           <Pressable
             style={[styles.modeButton, mode === 'countries' && styles.modeButtonActive]}
-            onPress={() => onModeChange?.('countries')}
+            onPress={handleCountriesMode}
+            accessibilityRole="button"
+            accessibilityLabel="Quoc gia"
+            accessibilityHint="Chuyen sang ban do quoc gia"
           >
             <Text style={styles.modeButtonText}>Quoc gia</Text>
           </Pressable>
-          <Pressable style={styles.closeButton} onPress={onClose}>
+          <Pressable
+            style={styles.closeButton}
+            onPress={onClose}
+            accessibilityRole="button"
+            accessibilityLabel="Dong"
+            accessibilityHint="Dong bang dieu khien ban do"
+          >
             <Text style={styles.closeText}>Dong</Text>
           </Pressable>
         </View>
@@ -74,6 +108,13 @@ const EarthMapPanel = ({ mode, onModeChange, onClose }) => {
       </View>
     </View>
   );
+});
+
+EarthMapPanel.displayName = 'EarthMapPanel';
+EarthMapPanel.propTypes = {
+  mode: PropTypes.string.isRequired,
+  onModeChange: PropTypes.func.isRequired,
+  onClose: PropTypes.func.isRequired,
 };
 
 const styles = StyleSheet.create({

@@ -10,7 +10,13 @@ const VenusDetails = memo(({ planet, onClose, showExploreButton, isExploreMode, 
   <View style={styles.infoCard}>
     <View style={styles.header}>
       <Text style={styles.planetTitle}>{planet.emoji} {planet.name}</Text>
-      <Pressable onPress={onClose} style={styles.closeBtn}>
+      <Pressable
+        onPress={onClose}
+        style={styles.closeBtn}
+        accessibilityRole="button"
+        accessibilityLabel="Đóng"
+        accessibilityHint="Đóng thông tin chi tiết"
+      >
         <Text style={styles.closeText}>✕</Text>
       </Pressable>
     </View>
@@ -40,7 +46,13 @@ const VenusDetails = memo(({ planet, onClose, showExploreButton, isExploreMode, 
       )}
     </ScrollView>
 
-    <Pressable onPress={onClose} style={styles.backButton}>
+    <Pressable
+      onPress={onClose}
+      style={styles.backButton}
+      accessibilityRole="button"
+      accessibilityLabel="Quay lại"
+      accessibilityHint="Quay lại màn hình hệ mặt trời"
+    >
       <Text style={styles.backButtonText}>QUAY LẠI HỆ MẶT TRỜI</Text>
     </Pressable>
   </View>
@@ -60,12 +72,21 @@ VenusDetails.propTypes = {
   onToggleExplore: PropTypes.func,
 };
 
-const StatItem = ({ label, value }) => (
+const StatItem = memo(({ label, value }) => (
   <View style={styles.statItem}>
     <Text style={styles.statLabel}>{label}</Text>
     <Text style={styles.statValue}>{value || 'N/A'}</Text>
   </View>
-);
+));
+
+StatItem.displayName = 'StatItem';
+StatItem.propTypes = {
+  label: PropTypes.string.isRequired,
+  value: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+};
+StatItem.defaultProps = {
+  value: null,
+};
 
 const styles = StyleSheet.create({
   infoCard: {

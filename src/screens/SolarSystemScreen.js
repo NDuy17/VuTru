@@ -1,8 +1,10 @@
-import React, { useEffect, useCallback } from 'react';
-import { StyleSheet, Text, ActivityIndicator, Pressable, View } from 'react-native';
+import React, { memo, useEffect, useCallback } from 'react';
+import { StyleSheet, Text } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useDispatch, useSelector } from 'react-redux';
 import SolarSystem3D from '../components/SolarSystem3D';
+import LoadingScreen from '../components/common/LoadingScreen';
+import ErrorScreen from '../components/common/ErrorScreen';
 import { fetchPlanets } from '../redux/slices/planetsSlice';
 import { COLORS, FONT_SIZES, MESSAGES, FETCH_STATUS } from '../constants';
 
@@ -13,7 +15,7 @@ import { COLORS, FONT_SIZES, MESSAGES, FETCH_STATUS } from '../constants';
  * @component
  * @returns {React.ReactNode} Solar system screen with loading/error handling
  */
-const SolarSystemScreen = () => {
+const SolarSystemScreen = memo(() => {
   const dispatch = useDispatch();
   const status = useSelector((state) => state.planets.status);
   const error = useSelector((state) => state.planets.error);
@@ -32,30 +34,23 @@ const SolarSystemScreen = () => {
     dispatch(fetchPlanets());
   }, [dispatch]);
 
+  if (status === FETCH_STATUS.LOADING) {
+    return <LoadingScreen color={COLORS.PRIMARY_CYAN} />;
+  }
+
+  if (status === FETCH_STATUS.FAILED) {
+    return <ErrorScreen message={error} onRetry={handleRetry} />;
+  }
+
   return (
     <SafeAreaView style={styles.container}>
       <Text style={styles.titleText}>{MESSAGES.SOLAR_SYSTEM_TITLE}</Text>
-      {status === FETCH_STATUS.LOADING ? (
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={COLORS.PRIMARY_CYAN} />
-          <Text style={styles.subtitleText}>{MESSAGES.LOADING_DATA}</Text>
-        </View>
-      ) : null}
-      {status === FETCH_STATUS.FAILED ? (
-        <View style={styles.errorContainer}>
-          <Text style={styles.warningText}>
-            {MESSAGES.API_ERROR}
-          </Text>
-          {error && <Text style={styles.errorDetails}>({error})</Text>}
-          <Pressable style={styles.retryButton} onPress={handleRetry}>
-            <Text style={styles.retryButtonText}>{MESSAGES.RETRY}</Text>
-          </Pressable>
-        </View>
-      ) : null}
       <SolarSystem3D />
     </SafeAreaView>
   );
-};
+});
+
+SolarSystemScreen.displayName = 'SolarSystemScreen';
 
 const styles = StyleSheet.create({
   container: {
@@ -68,47 +63,6 @@ const styles = StyleSheet.create({
     color: COLORS.PRIMARY_CYAN,
     textAlign: 'center',
     marginVertical: 12,
-  },
-  loadingContainer: {
-    paddingVertical: 20,
-    alignItems: 'center',
-  },
-  errorContainer: {
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    alignItems: 'center',
-  },
-  subtitleText: {
-    color: COLORS.SECONDARY_CYAN,
-    textAlign: 'center',
-    marginBottom: 8,
-    marginTop: 12,
-    fontSize: FONT_SIZES.BODY,
-  },
-  warningText: {
-    color: COLORS.WARNING_ORANGE,
-    textAlign: 'center',
-    marginBottom: 8,
-    marginHorizontal: 12,
-    fontSize: FONT_SIZES.CAPTION,
-  },
-  errorDetails: {
-    color: COLORS.ERROR_RED,
-    textAlign: 'center',
-    marginBottom: 12,
-    fontSize: FONT_SIZES.CAPTION,
-  },
-  retryButton: {
-    backgroundColor: COLORS.PRIMARY_CYAN,
-    paddingHorizontal: 24,
-    paddingVertical: 10,
-    borderRadius: 8,
-    marginTop: 8,
-  },
-  retryButtonText: {
-    color: COLORS.BACKGROUND,
-    fontWeight: 'bold',
-    fontSize: FONT_SIZES.BODY,
   },
 });
 

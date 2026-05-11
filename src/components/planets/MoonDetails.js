@@ -26,7 +26,12 @@ const MoonDetails = ({ moon, planet, onClose, showExploreButton, isExploreMode, 
       <Text style={styles.title}>
         {moon.emoji} {moon.name}
       </Text>
-      <Pressable onPress={onClose}>
+      <Pressable
+        onPress={onClose}
+        accessibilityRole="button"
+        accessibilityLabel="Đóng"
+        accessibilityHint="Đóng thông tin mặt trăng"
+      >
         <Text style={styles.close}>✕</Text>
       </Pressable>
     </View>
@@ -50,7 +55,13 @@ const MoonDetails = ({ moon, planet, onClose, showExploreButton, isExploreMode, 
     </View>
 
     {/* Button */}
-    <Pressable onPress={onClose} style={styles.btn}>
+    <Pressable
+      onPress={onClose}
+      style={styles.btn}
+      accessibilityRole="button"
+      accessibilityLabel="Quay lại"
+      accessibilityHint="Quay lại thông tin hành tinh"
+    >
       <Text style={styles.btnText}>QUAY LẠI</Text>
     </Pressable>
 
@@ -84,6 +95,8 @@ MoonDetails.defaultProps = {
   isExploreMode: false,
   onToggleExplore: () => {},
 };
+
+MoonDetails.displayName = 'MoonDetails';
 
 export default React.memo(MoonDetails); // 🔥 QUAN TRỌNG
 

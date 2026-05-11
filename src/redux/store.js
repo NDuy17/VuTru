@@ -5,6 +5,7 @@ const store = configureStore({
   reducer: {
     planets: planetsReducer,
   },
+  devTools: process.env.NODE_ENV !== 'production',
 });
 
 export default store;

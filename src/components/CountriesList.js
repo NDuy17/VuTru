@@ -82,6 +82,10 @@ const CountriesList = () => {
         ]}
         android_ripple={{ color: '#ffffff20' }}
         hitSlop={8}
+        accessibilityRole="button"
+        accessibilityLabel={item.nameVi}
+        accessibilityHint="Nhấn để mở hoặc đóng thông tin quốc gia"
+        accessibilityState={{ expanded: isExpanded }}
       >
         {/* Header - luôn hiển thị */}
         <View style={styles.countryHeader}>

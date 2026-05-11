@@ -1,221 +1,132 @@
-# 🌌 Hệ Mặt Trời - Solar System App
+# VuTru Solar System
 
-Một ứng dụng React Native về hệ mặt trời được xây dựng theo kiến trúc **Redux**, với animation quỹ đạo các hành tinh xoay quanh mặt trời.
+Ứng dụng Expo React Native mô phỏng hệ mặt trời với Redux Toolkit, dữ liệu hành tinh từ backend API, chế độ xem chi tiết hành tinh, mặt trăng và khám phá Trái Đất.
 
-## 📁 Cấu Trúc Dự Án
+## Cấu trúc dự án
 
+```text
+.
+├── App.js
+├── index.js
+├── app.json
+├── package.json
+├── .github/
+│   └── workflows/
+│       └── ci.yml
+├── assets/
+│   └── textures/
+├── server/
+│   ├── package.json
+│   └── src/
+└── src/
+    ├── components/
+    │   ├── CountriesList.js
+    │   ├── EarthMapPanel.web.js
+    │   ├── SolarSystem.js
+    │   ├── SolarSystem3D.js
+    │   ├── SolarSystem3D.web.js
+    │   ├── common/
+    │   │   ├── ErrorScreen.js
+    │   │   └── LoadingScreen.js
+    │   └── planets/
+    │       ├── EarthDetails.js
+    │       ├── JupiterDetails.js
+    │       ├── MarsDetails.js
+    │       ├── MercuryDetails.js
+    │       ├── MoonDetails.js
+    │       ├── NeptuneDetails.js
+    │       ├── PlanetDetails.js
+    │       ├── SaturnDetails.js
+    │       ├── SunDetails.js
+    │       ├── UranusDetails.js
+    │       └── VenusDetails.js
+    ├── constants/
+    │   ├── continentImages.js
+    │   └── index.js
+    ├── data/
+    │   ├── countries/
+    │   ├── planets/
+    │   └── textures.js
+    ├── redux/
+    │   ├── slices/
+    │   │   └── planetsSlice.js
+    │   └── store.js
+    ├── screens/
+    │   ├── CountriesScreen.js
+    │   └── SolarSystemScreen.js
+    └── services/
+        └── planetsApi.js
 ```
-src/
-├── redux/
-│   ├── slices/
-│   │   └── planetsSlice.js      # Redux slice chứa dữ liệu 9 hành tinh
-│   └── store.js                  # Redux store configuration
-├── components/
-│   └── SolarSystem.js            # Component hệ mặt trời với animation
-└── screens/
-    ├── SolarSystemScreen.js      # Màn hình hiển thị hệ mặt trời
-    ├── PlanetDetailScreen.js     # Màn hình chi tiết hành tinh
-    └── UniverseScreen.js         # (Cũ - không sử dụng)
-```
 
-## ✨ Tính Năng Chính
+## Tính năng chính
 
-- **9 Hành tinh**: Thủy Tinh, Kim Tinh, Trái Đất, Hỏa Tinh, Mộc Tinh, Thổ Tinh, Thiên Vương Tinh, Hải Vương Tinh + Mặt Trời
-- **🌍 Animation Quỹ Đạo**: Các hành tinh xoay quanh mặt trời theo quỹ đạo thực tế
-- **💫 Thông Tin Chi Tiết**:
-  - **Khối lượng, đường kính, diện tích, thể tích**
-  - **Khí hậu và nhiệt độ**
-  - **Đặc biệt cho Trái Đất**: Các vùng địa lý với động vật, văn hóa, ẩm thực
-- **Redux State Management**: Quản lý trạng thái hành tinh được chọn
-- **Bottom Tab Navigation**: Dễ dàng chuyển đổi giữa hệ mặt trời và chi tiết
+- Hiển thị hệ mặt trời với animation quỹ đạo và texture cục bộ.
+- Redux Toolkit quản lý dữ liệu hành tinh, trạng thái chọn hành tinh, loading và error.
+- `fetchPlanets` tải dữ liệu từ backend `/api/planets`.
+- Màn hình loading và error có nút "Thử lại".
+- Chế độ khám phá Trái Đất với hình SVG data URI cho 7 châu lục, hoạt động không cần internet.
+- CI chạy trên Node.js 20 với `npm ci` và `npx expo export --platform web`.
 
-## 🚀 Cách Chạy Ứng Dụng
+## Chạy ứng dụng
 
-### 1. Cài đặt dependencies:
 ```bash
 npm install
-```
-
-### 2. Chạy trên Expo:
-
-**Chạy development server:**
-```bash
 npm start
 ```
 
-**iOS:**
-```bash
-npm run ios
-```
+Các lệnh khác:
 
-**Android:**
 ```bash
 npm run android
-```
-
-**Web:**
-```bash
+npm run ios
 npm run web
 ```
 
-## 🍃 Kết Nối MongoDB (Local)
+## Backend API
 
-Project hiện đã có backend trong thư mục `server/` để lấy dữ liệu hành tinh từ MongoDB.
+Ứng dụng đọc dữ liệu hành tinh từ backend trong thư mục `server/`.
 
-### 1) Cài dependencies backend
 ```bash
 npm run server:install
-```
-
-### 2) Cấu hình môi trường backend
-- Copy `server/.env.example` thành `server/.env`
-- Đảm bảo `MONGODB_URI` trỏ tới MongoDB local, mặc định:
-  - `mongodb://127.0.0.1:27017/vutru`
-
-### 3) Chạy backend API
-```bash
 npm run server:dev
 ```
 
-Backend sẽ tự seed dữ liệu hành tinh lần đầu nếu collection đang trống.
+API mặc định:
 
-### 4) Cấu hình app trỏ API (nếu cần)
-- Mặc định:
-  - Android emulator: `http://10.0.2.2:5000`
-  - iOS simulator/Web: `http://localhost:5000`
-- Có thể override bằng biến môi trường Expo:
-  - `EXPO_PUBLIC_API_URL=http://<your-ip>:5000`
+```text
+http://localhost:5000/api/planets
+```
 
-## 📚 Redux Architecture
+Có thể override bằng biến môi trường Expo:
 
-### Store Structure:
-```javascript
+```bash
+EXPO_PUBLIC_API_URL=http://<host>:5000
+```
+
+## Redux
+
+Slice chính nằm tại `src/redux/slices/planetsSlice.js`.
+
+State:
+
+```js
 {
-  planets: {
-    planets: [
-      {
-        id: 0,
-        name: 'Mặt Trời',
-        emoji: '☀️',
-        color: '#FFD700',
-        isSun: true,
-        orbitRadius: 0,
-        orbitDuration: 0,
-        selected: false
-      },
-      {
-        id: 3,
-        name: 'Trái Đất',
-        emoji: '🌍',
-        color: '#4BADE8',
-        mass: '5.972 × 10²⁴ kg',
-        diameter: '12,742 km',
-        area: '510 triệu km²',
-        volume: '1.083 tỷ km³',
-        climate: 'Ôn đới với 4 mùa',
-        temperature: '-89°C đến 54°C',
-        regions: [...],
-        orbitRadius: 220,
-        orbitDuration: 15000,
-        selected: false
-      }
-      // ... other planets
-    ]
-  }
+  planets: [],
+  status: 'idle' | 'loading' | 'succeeded' | 'failed',
+  error: null
 }
 ```
 
-### Redux Actions:
-- `selectPlanet(id)`: Chọn một hành tinh
+Actions:
 
-## 🎨 Styling
+- `fetchPlanets()`
+- `selectPlanet(id)`
+- `resetSelection()`
+- `setError(message)`
+- `clearError()`
 
-Ứng dụng sử dụng React Native StyleSheet với:
-- **Màu sắc cosmic**: Dark navy (#0a0e27) và cyan (#00d4ff)
-- **Animation**: Animated API để xoay các hành tinh
-- **Shadow effects**: Để tạo depth
-- **Responsive design**: Tự động điều chỉnh cho các kích thước màn hình khác nhau
+## Build kiểm tra
 
-## 🔧 Công Nghệ Sử Dụng
-
-- **React Native**: Framework xây dựng mobile app
-- **Redux + @reduxjs/toolkit**: State management
-- **React Redux**: Binding React với Redux
-- **React Navigation**: Navigation giữa các screens
-- **Animated API**: Animation xoay quanh
-- **Expo**: Platform chạy React Native
-
-## 📝 Hướng Sử Dụng
-
-### Tab 1: 🌌 Hệ Mặt Trời
-1. Xem 9 hành tinh xoay quanh mặt trời
-2. Các hành tinh quay theo quỹ đạo của nó
-3. Chạm vào hành tinh để xem chi tiết
-
-### Tab 2: 📋 Chi Tiết
-1. Hiển thị thông tin chi tiết hành tinh đã chọn
-2. Xem khối lượng, diện tích, thể tích
-3. Xem khí hậu và nhiệt độ
-4. **Trái Đất đặc biệt**: Xem các vùng với động vật, văn hóa, ẩm thực
-5. Bấm ✕ để bỏ chọn
-
-## 🪐 Các Hành Tinh Có Sẵn
-
-| ID | Hành tinh | Emoji | Loại | Quỹ đạo |
-|-----|-----------|-------|------|---------|
-| 0 | Mặt Trời | ☀️ | Sao | - |
-| 1 | Thủy Tinh | ☿️ | Hành tinh | Gần nhất |
-| 2 | Kim Tinh | ♀️ | Hành tinh | - |
-| 3 | Trái Đất | 🌍 | Hành tinh | **🌍 Có vùng** |
-| 4 | Hỏa Tinh | ♂️ | Hành tinh | - |
-| 5 | Mộc Tinh | ♃ | Hành tinh | Khổng lồ |
-| 6 | Thổ Tinh | ♄ | Hành tinh | Có vành đai |
-| 7 | Thiên Vương Tinh | ♅ | Hành tinh | - |
-| 8 | Hải Vương Tinh | ♆ | Hành tinh | Xa nhất |
-
-## 🌍 Các Vùng Trái Đất
-
-**Đông Nam Á**
-- Động vật: Voi, Hổ, Khỉ, Chim Paramok
-- Văn hóa: Chùa chiền, lễ hội truyền thống
-- Ẩm thực: Phở, Pad Thai, Cơm Cà Ri, Bánh mì
-
-**Châu Âu**
-- Động vật: Gấu, Sói, Đại Bàng, Nai
-- Văn hóa: Lâu đài, nhạc cổ điển
-- Ẩm thực: Pizza, Pasta, Bánh mì Pháp, Bia
-
-**Châu Phi**
-- Động vật: Sư tử, Hươu cao cổ, Voi Châu Phi, Tê giác
-- Văn hóa: Váy Afrika, lễ hội múa
-- Ẩm thực: Tajine, Jollof Rice, Ugali, Injera
-
-**Mỹ Latinh**
-- Động vật: Sư tử núi, Báo, Lạc đà, Macaw
-- Văn hóa: Carnival, Điêu khắc Aztec
-- Ẩm thực: Tacos, Ceviche, Chili Con Carne, Chocolate
-
-## 📦 Dependencies
-
-- `react`: 19.1.0
-- `react-native`: 0.81.5
-- `redux`: Latest
-- `react-redux`: Latest
-- `@reduxjs/toolkit`: Latest
-- `@react-navigation/native`: Latest
-- `@react-navigation/bottom-tabs`: Latest
-- `expo`: ~54.0.33
-- `expo-status-bar`: ~3.0.9
-- `react-dom`: 19.1.0
-- `react-native-web`: ^0.21.0
-
-## 🤝 Mở Rộng Ứng Dụng
-
-Bạn có thể mở rộng bằng:
-- Thêm more animation (zoom, fade, etc.)
-- Thêm sound effects khi click hành tinh
-- Lưu hành tinh yêu thích vào AsyncStorage
-- Thêm camera để chụp ảnh mặt trời
-- Tạo quiz về các hành tinh
-- Thêm thông tin về các mặt trăng
-- Tích hợp NASA API cho dữ liệu thực
+```bash
+npx expo export --platform web
+```

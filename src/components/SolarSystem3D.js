@@ -1,6 +1,5 @@
-import React, { useState, useCallback } from 'react';
+import React, { memo, useMemo, useState, useCallback } from 'react';
 import { View, StyleSheet } from 'react-native';
-import PropTypes from 'prop-types';
 import { useSelector, useDispatch } from 'react-redux';
 import { selectPlanet } from '../redux/slices/planetsSlice';
 import SolarSystem from './SolarSystem';
@@ -15,11 +14,9 @@ import MoonDetails from './planets/MoonDetails';
  * @component
  * @returns {React.ReactNode} Solar system with interactive elements
  */
-const SolarSystemMobile = () => {
+const SolarSystemMobile = memo(() => {
   const planets = useSelector((state) => state.planets.planets);
-  const selectedPlanet = useSelector((state) =>
-    state.planets.planets.find((p) => !!p.selected)
-  );
+  const selectedPlanet = useMemo(() => planets.find((p) => !!p.selected), [planets]);
   const [selectedMoon, setSelectedMoon] = useState(null);
   const [isExploreMode, setIsExploreMode] = useState(false);
   const [earthMapMode, setEarthMapMode] = useState(null);
@@ -76,6 +73,14 @@ const SolarSystemMobile = () => {
     setIsExploreMode((prev) => !prev);
   }, []);
 
+  /**
+   * Close the moon detail panel.
+   * @function
+   */
+  const handleCloseMoon = useCallback(() => {
+    setSelectedMoon(null);
+  }, []);
+
   return (
     <View style={styles.container}>
       <SolarSystem
@@ -90,7 +95,7 @@ const SolarSystemMobile = () => {
         <MoonDetails 
           moon={selectedMoon.moon} 
           planet={selectedMoon.planet} 
-          onClose={() => setSelectedMoon(null)} 
+          onClose={handleCloseMoon} 
         />
       ) : (
         selectedPlanet && (
@@ -106,7 +111,9 @@ const SolarSystemMobile = () => {
       )}
     </View>
   );
-};
+});
+
+SolarSystemMobile.displayName = 'SolarSystemMobile';
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#000000' },

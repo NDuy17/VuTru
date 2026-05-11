@@ -1,5 +1,5 @@
-import React, { useCallback } from 'react';
-import { Platform, Pressable, StyleSheet, Text, View, ScrollView, Image } from 'react-native';
+import React, { useCallback, useMemo } from 'react';
+import { Pressable, StyleSheet, Text, View, ScrollView, Image } from 'react-native';
 import PropTypes from 'prop-types';
 import { PLANET_TEXTURES } from '../../data/textures';
 import countries from '../../data/countries';
@@ -12,6 +12,8 @@ import JupiterDetails from './JupiterDetails';
 import SaturnDetails from './SaturnDetails';
 import UranusDetails from './UranusDetails';
 import NeptuneDetails from './NeptuneDetails';
+import { getContinentImage } from '../../constants/continentImages';
+
 
 const detailMap = {
   0: SunDetails,
@@ -30,7 +32,6 @@ const CONTINENT_DATA = [
     id: 'asia',
     name: 'Châu Á',
     description: 'Châu Á là lục địa lớn nhất với nhiều quốc gia và nền văn hoá đa dạng.',
-    mapImage: 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/80/Asia_location_map.svg/1024px-Asia_location_map.svg.png',
     countries: [
       'Afghanistan', 'Armenia', 'Azerbaijan', 'Bahrain', 'Bangladesh',
       'Bhutan', 'Brunei', 'Campuchia', 'Trung Quốc', 'Georgia',
@@ -48,7 +49,6 @@ const CONTINENT_DATA = [
     id: 'europe',
     name: 'Châu Âu',
     description: 'Châu Âu nổi tiếng với lịch sử lâu đời và nhiều quốc gia nhỏ xinh.',
-    mapImage: 'https://upload.wikimedia.org/wikipedia/commons/thumb/5/50/Europe_location_map.svg/1024px-Europe_location_map.svg.png',
     countries: [
       'Albania', 'Andorra', 'Áo', 'Belarus', 'Bỉ',
       'Bosnia và Hercegovina', 'Bulgaria', 'Croatia', 'Síp', 'Cộng hòa Séc',
@@ -66,7 +66,6 @@ const CONTINENT_DATA = [
     id: 'africa',
     name: 'Châu Phi',
     description: 'Châu Phi có nhiều vùng đất hoang sơ và nền văn hoá bản địa phong phú.',
-    mapImage: 'https://upload.wikimedia.org/wikipedia/commons/thumb/9/92/Africa_location_map.svg/1024px-Africa_location_map.svg.png',
     countries: [
       'Algieria', 'Angola', 'Benin', 'Botswana', 'Burkina Faso',
       'Burundi', 'Cabo Verde', 'Cameroon', 'Cộng hòa Trung Phi', 'Chad',
@@ -85,7 +84,6 @@ const CONTINENT_DATA = [
     id: 'northAmerica',
     name: 'Bắc Mỹ',
     description: 'Bắc Mỹ là lục địa rộng lớn với nhiều quốc gia phát triển.',
-    mapImage: 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/35/North_America_%28orthographic_projection%29.svg/1024px-North_America_%28orthographic_projection%29.svg.png',
     countries: [
       'Antigua và Barbuda', 'Bahamas', 'Barbados', 'Belize', 'Canada',
       'Costa Rica', 'Cuba', 'Dominica', 'Cộng hòa Dominican', 'El Salvador',
@@ -99,7 +97,6 @@ const CONTINENT_DATA = [
     id: 'southAmerica',
     name: 'Nam Mỹ',
     description: 'Nam Mỹ nổi bật với rừng mưa Amazon và các nền văn hoá bản địa.',
-    mapImage: 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/16/South_America_location_map.svg/1024px-South_America_location_map.svg.png',
     countries: [
       'Argentina', 'Bolivia', 'Brazil', 'Chile', 'Colombia',
       'Ecuador', 'Guyana', 'Paraguay', 'Peru', 'Suriname',
@@ -110,7 +107,6 @@ const CONTINENT_DATA = [
     id: 'oceania',
     name: 'Châu Úc',
     description: 'Châu Úc bao gồm Australia và các đảo quốc Thái Bình Dương.',
-    mapImage: 'https://upload.wikimedia.org/wikipedia/commons/thumb/9/90/Oceania_location_map.svg/1024px-Oceania_location_map.svg.png',
     countries: [
       'Australia', 'Fiji', 'Kiribati', 'Marshall Islands', 'Micronesia',
       'Nauru', 'New Zealand', 'Palau', 'Papua New Guinea', 'Samoa',
@@ -121,10 +117,10 @@ const CONTINENT_DATA = [
     id: 'antarctica',
     name: 'Nam Cực',
     description: 'Nam Cực là lục địa băng giá, không có quốc gia chính thức.',
-    mapImage: 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/67/Antarctica_%28orthographic_projection%29.svg/1024px-Antarctica_%28orthographic_projection%29.svg.png',
     countries: ['Không có quốc gia'],
   },
 ];
+
 
 const COUNTRY_INFO_MAP = countries.reduce((map, country) => {
   map[country.nameVi] = country;
@@ -145,16 +141,27 @@ const EarthExplorePanel = React.memo(({ onBack, onClose }) => {
   const [selectedContinent, setSelectedContinent] = React.useState(null);
   const [expandedCountry, setExpandedCountry] = React.useState(null);
 
-  const continent = CONTINENT_DATA.find((item) => item.id === selectedContinent);
+  const continent = useMemo(
+    () => CONTINENT_DATA.find((item) => item.id === selectedContinent),
+    [selectedContinent]
+  );
 
   React.useEffect(() => {
     setSelectedContinent(null);
     setExpandedCountry(null);
   }, []);
 
-  const toggleCountry = (country) => {
+  const toggleCountry = useCallback((country) => {
     setExpandedCountry((current) => (current === country ? null : country));
-  };
+  }, []);
+
+  const handleClearContinent = useCallback(() => {
+    setSelectedContinent(null);
+  }, []);
+
+  const handleSelectContinent = useCallback((id) => {
+    setSelectedContinent(id);
+  }, []);
 
   return (
     <View style={styles.exploreContainer}>
@@ -163,15 +170,24 @@ const EarthExplorePanel = React.memo(({ onBack, onClose }) => {
           <Text style={styles.exploreTitle}>Khám phá Trái Đất</Text>
           <Text style={styles.exploreSubtitle}>Hiện bản đồ hiện giờ và chọn châu lục để xem quốc gia.</Text>
         </View>
-        <Pressable onPress={onClose} style={styles.closeBtn}>
+        <Pressable 
+          onPress={onClose} 
+          style={styles.closeBtn}
+          accessibilityRole="button"
+          accessibilityLabel="Đóng"
+          accessibilityHint="Đóng phần khám phá Trái Đất"
+        >
           <Text style={styles.closeText}>✕</Text>
         </Pressable>
       </View>
 
       <View style={styles.mapPreviewContainer}>
         <Image
-          source={{ uri: continent?.mapImage || PLANET_TEXTURES.earth }}
+          source={{ uri: continent ? getContinentImage(continent.name) : PLANET_TEXTURES.earth }}
           style={styles.mapPreview}
+          resizeMode="contain"
+          accessible={true}
+          accessibilityLabel={continent ? `Bản đồ ${continent.name}` : 'Bản đồ hiện giờ'}
         />
         <Text style={styles.mapPreviewLabel}>
           {continent ? `Bản đồ ${continent.name}` : 'Bản đồ hiện giờ'}
@@ -190,7 +206,11 @@ const EarthExplorePanel = React.memo(({ onBack, onClose }) => {
                   styles.continentItem,
                   active ? styles.continentItemActive : styles.continentItemInactive,
                 ]}
-                onPress={() => setSelectedContinent(item.id)}
+                onPress={() => handleSelectContinent(item.id)}
+                accessibilityRole="button"
+                accessibilityLabel={item.name}
+                accessibilityState={{ selected: active }}
+                accessibilityHint={`Chọn để xem các quốc gia thuộc ${item.name}`}
               >
                 <View style={styles.continentTextGroup}>
                   <Text style={[styles.continentItemTitle, active && styles.continentItemTitleActive]}>{item.name}</Text>
@@ -203,7 +223,12 @@ const EarthExplorePanel = React.memo(({ onBack, onClose }) => {
 
         {continent ? (
           <>
-            <Pressable style={styles.backLink} onPress={() => setSelectedContinent(null)}>
+            <Pressable 
+              style={styles.backLink} 
+              onPress={handleClearContinent}
+              accessibilityRole="button"
+              accessibilityLabel="Quay lại các châu lục"
+            >
               <Text style={styles.backLinkText}>← Quay lại các châu lục</Text>
             </Pressable>
             <Text style={styles.sectionTitle}>{continent.name}</Text>
@@ -220,6 +245,10 @@ const EarthExplorePanel = React.memo(({ onBack, onClose }) => {
                         expanded && styles.countryItemExpanded,
                       ]}
                       onPress={() => toggleCountry(country)}
+                      accessibilityRole="button"
+                      accessibilityLabel={country}
+                      accessibilityState={{ expanded }}
+                      accessibilityHint={`Nhấn để ${expanded ? 'đóng' : 'mở'} chi tiết về ${country}`}
                     >
                       <Text style={styles.countryText}>{country}</Text>
                       <Text style={styles.countryArrow}>{expanded ? '▲' : '▼'}</Text>
@@ -245,7 +274,12 @@ const EarthExplorePanel = React.memo(({ onBack, onClose }) => {
         )}
       </ScrollView>
 
-      <Pressable style={styles.backButton} onPress={onBack}>
+      <Pressable 
+        style={styles.backButton} 
+        onPress={onBack}
+        accessibilityRole="button"
+        accessibilityLabel="Trở lại thông tin Trái Đất"
+      >
         <Text style={styles.backButtonText}>Trở lại thông tin Trái Đất</Text>
       </Pressable>
     </View>
@@ -272,7 +306,7 @@ EarthExplorePanel.propTypes = {
  * @param {Function} props.onEarthMapModeChange - Callback when Earth map mode changes
  * @returns {React.ReactNode} Planet details UI or null if planet not found
  */
-const PlanetDetails = ({
+const PlanetDetails = React.memo(({
   planet,
   onClose,
   isExploreMode,
@@ -299,7 +333,9 @@ const PlanetDetails = ({
       />
     </View>
   );
-};
+});
+
+PlanetDetails.displayName = 'PlanetDetails';
 
 const styles = StyleSheet.create({
   wrapper: {

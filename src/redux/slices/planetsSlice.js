@@ -1,12 +1,11 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
-import { planets } from '../../data/planets';
 
 /**
- * Async thunk for fetching planets from the API
- * Falls back to local bundled data if API fails
+ * Async thunk for fetching planets from the backend API
+ * Fetches planet data including statistics, textures, and orbit configurations
  * @async
  * @function fetchPlanets
- * @returns {Promise<Array>} Array of planet objects from API or local data
+ * @returns {Promise<Array>} Array of planet objects from API
  */
 export const fetchPlanets = createAsyncThunk(
   'planets/fetchPlanets',
@@ -37,7 +36,8 @@ const initialState = {
 /**
  * Planets Redux slice
  * Manages state for planets data, loading status, and errors
- * Includes reducers for planet selection and async thunk handlers
+ * Includes reducers for planet selection, state resets, and error handling
+ * @module planetsSlice
  */
 const planetsSlice = createSlice({
   name: 'planets',
@@ -55,6 +55,36 @@ const planetsSlice = createSlice({
           ? { ...planet, selected: true }
           : { ...planet, selected: false }
       );
+    },
+    /**
+     * Resets planet selection by marking all planets as unselected
+     * @function resetSelection
+     * @param {Object} state - Current Redux state
+     */
+    resetSelection: (state) => {
+      state.planets = state.planets.map((planet) => ({
+        ...planet,
+        selected: false,
+      }));
+    },
+    /**
+     * Manually sets an error message
+     * @function setError
+     * @param {Object} state - Current Redux state
+     * @param {Object} action - Redux action with payload (error string)
+     */
+    setError: (state, action) => {
+      state.error = action.payload;
+      state.status = 'failed';
+    },
+    /**
+     * Clears current error and resets status to idle
+     * @function clearError
+     * @param {Object} state - Current Redux state
+     */
+    clearError: (state) => {
+      state.error = null;
+      state.status = 'idle';
     },
   },
   extraReducers: (builder) => {
@@ -74,11 +104,11 @@ const planetsSlice = createSlice({
       .addCase(fetchPlanets.rejected, (state, action) => {
         state.status = 'failed';
         state.error = action.payload || 'Cannot fetch planets from API';
-        // Fallback to local bundled data so app still works offline.
-        state.planets = planets.map((planet) => ({ ...planet, selected: false }));
+        state.planets = []; // Ensure no stale data remains on failure
       });
   },
 });
 
-export const { selectPlanet } = planetsSlice.actions;
+export const { selectPlanet, resetSelection, setError, clearError } = planetsSlice.actions;
 export default planetsSlice.reducer;
+

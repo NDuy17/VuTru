@@ -177,4 +177,30 @@ export const PATTERNS = {
 export const TIMINGS = {
   INTERACTION_DEBOUNCE: 150,
   ANIMATION_FRAME_RATE: 1000 / 60, // 60 FPS reference
+  DEFAULT_DURATION: 300,
 };
+
+// ============================================================================
+// API CONFIGURATION
+// ============================================================================
+
+export const API_URLS = {
+  BASE_URL: process.env.EXPO_PUBLIC_API_URL || 'http://localhost:5000',
+  PLANETS: '/api/planets',
+};
+
+// ============================================================================
+// ORBIT RADII
+// ============================================================================
+
+export const ORBIT_RADII = {
+  MERCURY: 40,
+  VENUS: 60,
+  EARTH: 80,
+  MARS: 100,
+  JUPITER: 140,
+  SATURN: 180,
+  URANUS: 220,
+  NEPTUNE: 260,
+};
+
