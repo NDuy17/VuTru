@@ -1,7 +1,12 @@
-import React from 'react';
+import React, { memo } from 'react';
 import { View, Text, Pressable, ScrollView, StyleSheet, Platform } from 'react-native';
+import PropTypes from 'prop-types';
 
-const VenusDetails = ({ planet, onClose, showExploreButton, isExploreMode, onToggleExplore }) => (
+/**
+ * VenusDetails Component - Displays comprehensive information about Venus
+ * @component
+ */
+const VenusDetails = memo(({ planet, onClose, showExploreButton, isExploreMode, onToggleExplore }) => (
   <View style={styles.infoCard}>
     <View style={styles.header}>
       <Text style={styles.planetTitle}>{planet.emoji} {planet.name}</Text>
@@ -39,7 +44,21 @@ const VenusDetails = ({ planet, onClose, showExploreButton, isExploreMode, onTog
       <Text style={styles.backButtonText}>QUAY LẠI HỆ MẶT TRỜI</Text>
     </Pressable>
   </View>
-);
+));
+
+VenusDetails.displayName = 'VenusDetails';
+VenusDetails.propTypes = {
+  planet: PropTypes.shape({
+    id: PropTypes.number,
+    emoji: PropTypes.string,
+    name: PropTypes.string,
+    description: PropTypes.string,
+  }).isRequired,
+  onClose: PropTypes.func.isRequired,
+  showExploreButton: PropTypes.bool,
+  isExploreMode: PropTypes.bool,
+  onToggleExplore: PropTypes.func,
+};
 
 const StatItem = ({ label, value }) => (
   <View style={styles.statItem}>

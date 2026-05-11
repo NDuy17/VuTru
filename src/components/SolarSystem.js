@@ -1,26 +1,48 @@
-import React, { useState, useEffect, useMemo, useRef, memo } from 'react';
+import React, { useState, useEffect, useMemo, useRef, memo, useCallback } from 'react';
 import { View, StyleSheet, Text, Pressable, useWindowDimensions, PanResponder, Animated, Image, Easing } from 'react-native';
-import { SUN_TEXTURE, PLANET_TEXTURES, MOON_TEXTURES } from '../data/textures';
+import PropTypes from 'prop-types';
+import { ANIMATION, PLANET_SIZING, PATTERNS, RESOURCES } from '../constants';
 
-const EARTH_CONTINENTS_TEXTURE = 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c0/Equirectangular_projection_world_map_without_borders.svg/2560px-Equirectangular_projection_world_map_without_borders.svg.png';
-const EARTH_COUNTRIES_TEXTURE = 'https://upload.wikimedia.org/wikipedia/commons/thumb/b/b0/World_location_map_%28equirectangular_180%29.svg/2560px-World_location_map_%28equirectangular_180%29.svg.png';
+const EARTH_CONTINENTS_TEXTURE = RESOURCES.EARTH_CONTINENTS_MAP;
+const EARTH_COUNTRIES_TEXTURE = RESOURCES.EARTH_COUNTRIES_MAP;
 
+/**
+ * Parse diameter string and extract numeric value
+ * @function
+ * @param {string|number} diameter - Diameter value to parse
+ * @returns {number} Numeric diameter in km
+ */
 const parseDiameter = (diameter) => {
-  const value = String(diameter).replace(/[^0-9]/g, '');
+  const value = String(diameter).replace(PATTERNS.DIGITS_ONLY, '');
   return Number(value) || 0;
 };
 
+/**
+ * Calculate visual size for planet display
+ * Scales diameter to fit within reasonable mobile display bounds
+ * @function
+ * @param {string|number} diameter - Planet diameter in km
+ * @returns {number} Visual size for rendering
+ */
 const getVisualSize = (diameter) => {
   const diameterKm = parseDiameter(diameter);
-  return Math.max(18, Math.min(110, Math.sqrt(diameterKm) * 0.52));
+  return Math.max(PLANET_SIZING.MIN_VISUAL_SIZE, Math.min(PLANET_SIZING.MAX_VISUAL_SIZE, Math.sqrt(diameterKm) * PLANET_SIZING.SIZE_SCALE_FACTOR));
 };
 
+/**
+ * Calculate visual size for moon relative to planet
+ * @function
+ * @param {string|number} moonDiameter - Moon diameter
+ * @param {string|number} planetDiameter - Parent planet diameter
+ * @param {number} planetSize - Visual size of parent planet
+ * @returns {number} Visual size for moon rendering
+ */
 const getMoonVisualSize = (moonDiameter, planetDiameter, planetSize) => {
   const moonKm = parseDiameter(moonDiameter);
   const planetKm = parseDiameter(planetDiameter) || 1;
   const ratio = Math.sqrt(moonKm / planetKm);
-  const visual = planetSize * ratio * 0.72;
-  return Math.max(5, Math.min(visual, planetSize * 0.2));
+  const visual = planetSize * ratio * PLANET_SIZING.MOON_RATIO_FACTOR;
+  return Math.max(PLANET_SIZING.MIN_MOON_SIZE, Math.min(visual, planetSize * PLANET_SIZING.MAX_MOON_RATIO));
 };
 
 const textureMap = {
@@ -47,6 +69,19 @@ const textureMap = {
 };
 
 // 🌎 Optimized TextureSphere (Memoized for peak performance)
+/**
+ * TextureSphere Component
+ * Renders a rotating textured sphere for planet/celestial body display
+ * Memoized to prevent unnecessary re-renders
+ * @component
+ * @param {Object} props - Component props
+ * @param {number} props.size - Size of sphere in pixels
+ * @param {string} props.texture - URI of texture image to apply
+ * @param {number} props.angle - Current rotation angle in radians
+ * @param {boolean} [props.isSun] - Whether to render sun glow effect
+ * @param {string} [props.color] - Fallback color if no texture provided
+ * @returns {React.ReactNode} Textured sphere UI
+ */
 const TextureSphere = memo(({ size, texture, angle, isSun, color }) => {
   const scrollOffset = (angle % (Math.PI * 2)) * (size / Math.PI);
   
@@ -65,6 +100,34 @@ const TextureSphere = memo(({ size, texture, angle, isSun, color }) => {
   );
 });
 
+TextureSphere.displayName = 'TextureSphere';
+TextureSphere.propTypes = {
+  size: PropTypes.number.isRequired,
+  texture: PropTypes.string,
+  angle: PropTypes.number.isRequired,
+  isSun: PropTypes.bool,
+  color: PropTypes.string,
+};
+TextureSphere.defaultProps = {
+  texture: null,
+  isSun: false,
+  color: '#444',
+};
+
+/**
+ * SolarSystem Component
+ * Main interactive 3D solar system visualization component
+ * Handles pan/pinch gestures for rotation and zoom
+ * Displays planets with orbital mechanics and selection
+ * @component
+ * @param {Object} props - Component props
+ * @param {Array} props.planets - Array of planet objects with id, name, selected, etc.
+ * @param {Function} props.onPlanetPress - Callback when planet is selected
+ * @param {Function} props.onMoonPress - Callback when moon is selected
+ * @param {boolean} [props.explorationMode] - Whether in exploration mode
+ * @param {string|null} [props.earthMapMode] - Current Earth map mode (continents/countries)
+ * @returns {React.ReactNode} Interactive solar system UI
+ */
 const SolarSystem = ({ planets, onPlanetPress, onMoonPress, explorationMode = false, earthMapMode = null }) => {
   const { width, height } = useWindowDimensions();
   const selectedPlanet = useMemo(() => planets.find(p => p.selected), [planets]);
@@ -389,4 +452,28 @@ const styles = StyleSheet.create({
   sunGlow: { position: 'absolute', backgroundColor: 'rgba(255, 100, 0, 0.25)', shadowColor: '#f80', shadowRadius: 20, shadowOpacity: 0.8, elevation: 5 },
   label: { color: 'rgba(255,255,255,0.4)', fontSize: 9, position: 'absolute', bottom: -14, fontWeight: '600' },
 });
+
+SolarSystem.propTypes = {
+  planets: PropTypes.arrayOf(
+    PropTypes.shape({
+      id: PropTypes.number.isRequired,
+      name: PropTypes.string,
+      selected: PropTypes.bool,
+      isSun: PropTypes.bool,
+      orbitalPeriod: PropTypes.number,
+      initialAngle: PropTypes.number,
+      moons: PropTypes.array,
+    })
+  ).isRequired,
+  onPlanetPress: PropTypes.func.isRequired,
+  onMoonPress: PropTypes.func.isRequired,
+  explorationMode: PropTypes.bool,
+  earthMapMode: PropTypes.string,
+};
+
+SolarSystem.defaultProps = {
+  explorationMode: false,
+  earthMapMode: null,
+};
+
 export default SolarSystem;

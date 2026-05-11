@@ -1,6 +1,45 @@
-import React from 'react';
+import React, { memo } from 'react';
 import { View, Text, Pressable, ScrollView, StyleSheet, Platform } from 'react-native';
+import PropTypes from 'prop-types';
 
+/**
+ * StatItem Component
+ * Displays a single statistic item with label and value
+ * @component
+ * @param {Object} props - Component props
+ * @param {string} props.label - Label text
+ * @param {string|number} props.value - Value to display
+ * @returns {React.ReactNode} Stat item UI
+ */
+const StatItem = memo(({ label, value }) => (
+  <View style={styles.statItem}>
+    <Text style={styles.statLabel}>{label}</Text>
+    <Text style={styles.statValue}>{value || 'N/A'}</Text>
+  </View>
+));
+
+StatItem.displayName = 'StatItem';
+StatItem.propTypes = {
+  label: PropTypes.string.isRequired,
+  value: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+};
+StatItem.defaultProps = {
+  value: null,
+};
+
+/**
+ * EarthDetails Component
+ * Displays comprehensive information about Earth
+ * Shows planet statistics, moons, and explore functionality
+ * @component
+ * @param {Object} props - Component props
+ * @param {Object} props.planet - Planet data object
+ * @param {Function} props.onClose - Close callback
+ * @param {boolean} [props.showExploreButton] - Show explore button
+ * @param {boolean} [props.isExploreMode] - Exploration mode flag
+ * @param {Function} [props.onToggleExplore] - Toggle explore mode callback
+ * @returns {React.ReactNode} Earth details UI
+ */
 const EarthDetails = ({ planet, onClose, showExploreButton, isExploreMode, onToggleExplore }) => (
   <View style={styles.infoCard}>
     <View style={styles.header}>
@@ -52,12 +91,7 @@ const EarthDetails = ({ planet, onClose, showExploreButton, isExploreMode, onTog
   </View>
 );
 
-const StatItem = ({ label, value }) => (
-  <View style={styles.statItem}>
-    <Text style={styles.statLabel}>{label}</Text>
-    <Text style={styles.statValue}>{value || 'N/A'}</Text>
-  </View>
-);
+
 
 const styles = StyleSheet.create({
   infoCard: {
@@ -145,5 +179,31 @@ const styles = StyleSheet.create({
   },
   backButtonText: { color: '#00d4ff', fontWeight: 'bold', fontSize: 14 },
 });
+
+EarthDetails.propTypes = {
+  planet: PropTypes.shape({
+    id: PropTypes.number,
+    emoji: PropTypes.string,
+    name: PropTypes.string,
+    description: PropTypes.string,
+    mass: PropTypes.string,
+    temperature: PropTypes.string,
+    gravity: PropTypes.string,
+    type: PropTypes.string,
+    distanceAU: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+    moonsInfo: PropTypes.arrayOf(PropTypes.object),
+    moons: PropTypes.oneOfType([PropTypes.number, PropTypes.array]),
+  }).isRequired,
+  onClose: PropTypes.func.isRequired,
+  showExploreButton: PropTypes.bool,
+  isExploreMode: PropTypes.bool,
+  onToggleExplore: PropTypes.func,
+};
+
+EarthDetails.defaultProps = {
+  showExploreButton: false,
+  isExploreMode: false,
+  onToggleExplore: () => {},
+};
 
 export default EarthDetails;

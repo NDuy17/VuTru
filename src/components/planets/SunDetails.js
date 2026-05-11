@@ -1,7 +1,19 @@
-import React from 'react';
+import React, { memo } from 'react';
 import { View, Text, Pressable, ScrollView, StyleSheet, Platform } from 'react-native';
+import PropTypes from 'prop-types';
 
-const SunDetails = ({ planet, onClose, showExploreButton, isExploreMode, onToggleExplore }) => (
+/**
+ * SunDetails Component - Displays comprehensive information about the Sun
+ * @component
+ * @param {Object} props - Component props
+ * @param {Object} props.planet - Planet/Sun data object
+ * @param {Function} props.onClose - Close callback
+ * @param {boolean} [props.showExploreButton] - Show explore button
+ * @param {boolean} [props.isExploreMode] - Exploration mode flag
+ * @param {Function} [props.onToggleExplore] - Toggle explore callback
+ * @returns {React.ReactNode} Sun details UI
+ */
+const SunDetails = memo(({ planet, onClose, showExploreButton, isExploreMode, onToggleExplore }) => (
   <View style={styles.infoCard}>
     <View style={styles.header}>
       <Text style={styles.planetTitle}>{planet.emoji} {planet.name}</Text>
@@ -27,14 +39,45 @@ const SunDetails = ({ planet, onClose, showExploreButton, isExploreMode, onToggl
       <Text style={styles.backButtonText}>QUAY LẠI HỆ MẶT TRỜI</Text>
     </Pressable>
   </View>
-);
+));
 
-const StatItem = ({ label, value }) => (
+/**
+ * StatItem Component - Displays a single statistic item
+ * @component
+ */
+const StatItem = memo(({ label, value }) => (
   <View style={styles.statItem}>
     <Text style={styles.statLabel}>{label}</Text>
     <Text style={styles.statValue}>{value || 'N/A'}</Text>
   </View>
-);
+));
+
+StatItem.displayName = 'StatItem';
+StatItem.propTypes = {
+  label: PropTypes.string.isRequired,
+  value: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+};
+
+SunDetails.displayName = 'SunDetails';
+SunDetails.propTypes = {
+  planet: PropTypes.shape({
+    id: PropTypes.number,
+    emoji: PropTypes.string,
+    name: PropTypes.string,
+    description: PropTypes.string,
+    mass: PropTypes.string,
+    temperature: PropTypes.string,
+    gravity: PropTypes.string,
+    type: PropTypes.string,
+    distanceAU: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+    moonsInfo: PropTypes.arrayOf(PropTypes.object),
+    moons: PropTypes.oneOfType([PropTypes.number, PropTypes.array]),
+  }).isRequired,
+  onClose: PropTypes.func.isRequired,
+  showExploreButton: PropTypes.bool,
+  isExploreMode: PropTypes.bool,
+  onToggleExplore: PropTypes.func,
+};
 
 const styles = StyleSheet.create({
   infoCard: {

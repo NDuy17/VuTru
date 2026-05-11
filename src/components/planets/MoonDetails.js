@@ -1,6 +1,22 @@
 import React from 'react';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
+import PropTypes from 'prop-types';
 
+/**
+ * MoonDetails Component
+ * Displays detailed information about a celestial moon
+ * Shows moon data, parent planet reference, and close button
+ * Memoized for performance optimization
+ * @component
+ * @param {Object} props - Component props
+ * @param {Object} props.moon - Moon object with id, name, diameter, distance, etc.
+ * @param {Object} props.planet - Parent planet object
+ * @param {Function} props.onClose - Callback when user closes the panel
+ * @param {boolean} [props.showExploreButton] - Whether to show explore button
+ * @param {boolean} [props.isExploreMode] - Whether in exploration mode
+ * @param {Function} [props.onToggleExplore] - Callback to toggle explore mode
+ * @returns {React.ReactNode} Moon details UI
+ */
 const MoonDetails = ({ moon, planet, onClose, showExploreButton, isExploreMode, onToggleExplore }) => {
   return (<View style={styles.container}>
 
@@ -41,6 +57,32 @@ const MoonDetails = ({ moon, planet, onClose, showExploreButton, isExploreMode, 
   </View>
 
   );
+};
+
+MoonDetails.propTypes = {
+  moon: PropTypes.shape({
+    id: PropTypes.number,
+    emoji: PropTypes.string,
+    name: PropTypes.string.isRequired,
+    diameter: PropTypes.string,
+    distance: PropTypes.string,
+    orbitalPeriod: PropTypes.number,
+    description: PropTypes.string,
+  }).isRequired,
+  planet: PropTypes.shape({
+    id: PropTypes.number,
+    name: PropTypes.string,
+  }).isRequired,
+  onClose: PropTypes.func.isRequired,
+  showExploreButton: PropTypes.bool,
+  isExploreMode: PropTypes.bool,
+  onToggleExplore: PropTypes.func,
+};
+
+MoonDetails.defaultProps = {
+  showExploreButton: false,
+  isExploreMode: false,
+  onToggleExplore: () => {},
 };
 
 export default React.memo(MoonDetails); // 🔥 QUAN TRỌNG

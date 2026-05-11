@@ -1,11 +1,20 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { View, StyleSheet } from 'react-native';
+import PropTypes from 'prop-types';
 import { useSelector, useDispatch } from 'react-redux';
 import { selectPlanet } from '../redux/slices/planetsSlice';
 import SolarSystem from './SolarSystem';
 import PlanetDetails from './planets/PlanetDetails';
 import MoonDetails from './planets/MoonDetails';
 
+/**
+ * SolarSystemMobile Component
+ * Main 3D solar system interaction component
+ * Manages planet selection, moon selection, and exploration modes
+ * Displays the interactive solar system with planet/moon detail panels
+ * @component
+ * @returns {React.ReactNode} Solar system with interactive elements
+ */
 const SolarSystemMobile = () => {
   const planets = useSelector((state) => state.planets.planets);
   const selectedPlanet = useSelector((state) =>
@@ -16,16 +25,56 @@ const SolarSystemMobile = () => {
   const [earthMapMode, setEarthMapMode] = useState(null);
   const dispatch = useDispatch();
 
-  const handleClose = () => {
+  /**
+   * Close all detail panels and reset state
+   * @function
+   */
+  const handleClose = useCallback(() => {
     dispatch(selectPlanet(null));
     setSelectedMoon(null);
     setIsExploreMode(false);
     setEarthMapMode(null);
-  };
+  }, [dispatch]);
 
-  const handleMoonPress = (moon, planet) => {
+  /**
+   * Handle moon press event
+   * @function
+   * @param {Object} moon - Moon object data
+   * @param {Object} planet - Parent planet object data
+   */
+  const handleMoonPress = useCallback((moon, planet) => {
     setSelectedMoon({ moon, planet });
-  };
+  }, []);
+
+  /**
+   * Handle planet press event
+   * @function
+   * @param {number} id - Planet ID
+   */
+  const handlePlanetPress = useCallback((id) => {
+    dispatch(selectPlanet(id));
+    setSelectedMoon(null);
+    setIsExploreMode(false);
+    setEarthMapMode(null);
+  }, [dispatch]);
+
+  /**
+   * Handle Earth map mode change
+   * @function
+   * @param {string|null} mode - Map mode (continents/countries/null)
+   */
+  const handleEarthMapModeChange = useCallback((mode) => {
+    setEarthMapMode(mode);
+    setIsExploreMode(!!mode);
+  }, []);
+
+  /**
+   * Toggle explore mode
+   * @function
+   */
+  const handleToggleExplore = useCallback(() => {
+    setIsExploreMode((prev) => !prev);
+  }, []);
 
   return (
     <View style={styles.container}>
@@ -33,17 +82,16 @@ const SolarSystemMobile = () => {
         planets={planets}
         explorationMode={isExploreMode}
         earthMapMode={earthMapMode}
-        onPlanetPress={(id) => {
-          dispatch(selectPlanet(id));
-          setSelectedMoon(null);
-          setIsExploreMode(false);
-          setEarthMapMode(null);
-        }}
+        onPlanetPress={handlePlanetPress}
         onMoonPress={handleMoonPress}
       />
 
       {selectedMoon ? (
-        <MoonDetails moon={selectedMoon.moon} planet={selectedMoon.planet} onClose={() => setSelectedMoon(null)} />
+        <MoonDetails 
+          moon={selectedMoon.moon} 
+          planet={selectedMoon.planet} 
+          onClose={() => setSelectedMoon(null)} 
+        />
       ) : (
         selectedPlanet && (
           <PlanetDetails
@@ -51,11 +99,8 @@ const SolarSystemMobile = () => {
             onClose={handleClose}
             isExploreMode={selectedPlanet.id === 3 ? !!earthMapMode : isExploreMode}
             earthMapMode={selectedPlanet.id === 3 ? earthMapMode : null}
-            onEarthMapModeChange={(mode) => {
-              setEarthMapMode(mode);
-              setIsExploreMode(!!mode);
-            }}
-            onToggleExplore={() => setIsExploreMode((prev) => !prev)}
+            onEarthMapModeChange={handleEarthMapModeChange}
+            onToggleExplore={handleToggleExplore}
           />
         )
       )}

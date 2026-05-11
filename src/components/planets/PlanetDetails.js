@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import { Platform, Pressable, StyleSheet, Text, View, ScrollView, Image } from 'react-native';
+import PropTypes from 'prop-types';
 import { PLANET_TEXTURES } from '../../data/textures';
 import countries from '../../data/countries';
 import SunDetails from './SunDetails';
@@ -131,7 +132,16 @@ const COUNTRY_INFO_MAP = countries.reduce((map, country) => {
   return map;
 }, {});
 
-const EarthExplorePanel = ({ onBack, onClose }) => {
+/**
+ * EarthExplorePanel Component
+ * Provides an interactive exploration interface for Earth continents and countries
+ * @component
+ * @param {Object} props - Component props
+ * @param {Function} props.onBack - Callback function when user wants to return to Earth details
+ * @param {Function} props.onClose - Callback function when user closes the explore panel
+ * @returns {React.ReactNode} The explore panel UI
+ */
+const EarthExplorePanel = React.memo(({ onBack, onClose }) => {
   const [selectedContinent, setSelectedContinent] = React.useState(null);
   const [expandedCountry, setExpandedCountry] = React.useState(null);
 
@@ -240,8 +250,28 @@ const EarthExplorePanel = ({ onBack, onClose }) => {
       </Pressable>
     </View>
   );
+});
+
+EarthExplorePanel.displayName = 'EarthExplorePanel';
+EarthExplorePanel.propTypes = {
+  onBack: PropTypes.func.isRequired,
+  onClose: PropTypes.func.isRequired,
 };
 
+/**
+ * PlanetDetails Component
+ * Main component for displaying detailed information about selected planets
+ * Handles routing to planet-specific detail components and Earth exploration mode
+ * @component
+ * @param {Object} props - Component props
+ * @param {Object} props.planet - Planet data object containing id, name, and other properties
+ * @param {Function} props.onClose - Callback when closing planet details
+ * @param {boolean} props.isExploreMode - Whether in Earth exploration mode
+ * @param {Function} props.onToggleExplore - Callback to toggle explore mode
+ * @param {string|null} props.earthMapMode - Current Earth map mode (continents/countries)
+ * @param {Function} props.onEarthMapModeChange - Callback when Earth map mode changes
+ * @returns {React.ReactNode} Planet details UI or null if planet not found
+ */
 const PlanetDetails = ({
   planet,
   onClose,
@@ -463,5 +493,25 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
 });
+
+PlanetDetails.propTypes = {
+  planet: PropTypes.shape({
+    id: PropTypes.number.isRequired,
+    name: PropTypes.string,
+    selected: PropTypes.bool,
+  }).isRequired,
+  onClose: PropTypes.func.isRequired,
+  isExploreMode: PropTypes.bool,
+  onToggleExplore: PropTypes.func,
+  earthMapMode: PropTypes.string,
+  onEarthMapModeChange: PropTypes.func,
+};
+
+PlanetDetails.defaultProps = {
+  isExploreMode: false,
+  onToggleExplore: () => {},
+  earthMapMode: null,
+  onEarthMapModeChange: () => {},
+};
 
 export default PlanetDetails;

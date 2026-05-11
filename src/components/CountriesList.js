@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback, memo } from 'react';
 import {
   View,
   Text,
@@ -9,8 +9,39 @@ import {
   Platform,
   UIManager,
 } from 'react-native';
+import PropTypes from 'prop-types';
 import countries from '../data/countries';
+import { COLORS, FONT_SIZES } from '../constants';
 
+/**
+ * DetailRow Component
+ * Displays a single row of country detail information
+ * @component
+ * @param {Object} props - Component props
+ * @param {string} props.label - Label for the detail row
+ * @param {string} props.value - Value to display for the detail
+ * @returns {React.ReactNode} Detail row UI
+ */
+const DetailRow = memo(({ label, value }) => (
+  <View style={styles.detailRow}>
+    <Text style={styles.detailLabel}>{label}:</Text>
+    <Text style={styles.detailValue}>{value}</Text>
+  </View>
+));
+
+DetailRow.displayName = 'DetailRow';
+DetailRow.propTypes = {
+  label: PropTypes.string.isRequired,
+  value: PropTypes.string.isRequired,
+};
+
+/**
+ * CountriesList Component
+ * Main list component displaying countries with expandable details
+ * Uses LayoutAnimation for smooth expand/collapse transitions
+ * @component
+ * @returns {React.ReactNode} Countries list with FlatList
+ */
 const CountriesList = () => {
   const [expandedId, setExpandedId] = useState(null);
 
@@ -20,12 +51,25 @@ const CountriesList = () => {
     }
   }, []);
 
-  const toggleExpand = (id) => {
+  /**
+   * Toggle expand state for a country item
+   * Triggers LayoutAnimation for smooth transition
+   * @function
+   * @param {number} id - Country ID to toggle
+   */
+  const toggleExpand = useCallback((id) => {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
     setExpandedId((currentId) => (currentId === id ? null : id));
-  };
+  }, []);
 
-  const renderCountry = ({ item }) => {
+  /**
+   * Render individual country item with details
+   * @function
+   * @param {Object} props - FlatList render props
+   * @param {Object} props.item - Country item data
+   * @returns {React.ReactNode} Country card UI
+   */
+  const renderCountry = useCallback(({ item }) => {
     const isExpanded = expandedId === item.id;
 
     return (
@@ -72,7 +116,7 @@ const CountriesList = () => {
         )}
       </Pressable>
     );
-  };
+  }, [expandedId, toggleExpand]);
 
   return (
     <View style={styles.container}>
@@ -94,17 +138,12 @@ const CountriesList = () => {
   );
 };
 
-const DetailRow = ({ label, value }) => (
-  <View style={styles.detailRow}>
-    <Text style={styles.detailLabel}>{label}:</Text>
-    <Text style={styles.detailValue}>{value}</Text>
-  </View>
-);
+CountriesList.displayName = 'CountriesList';
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0a0e27',
+    backgroundColor: COLORS.BACKGROUND,
   },
   headerSection: {
     paddingHorizontal: 16,
@@ -114,14 +153,14 @@ const styles = StyleSheet.create({
     borderBottomColor: '#1a2454',
   },
   title: {
-    fontSize: 24,
+    fontSize: FONT_SIZES.HEADING_LARGE,
     fontWeight: 'bold',
-    color: '#00d4ff',
+    color: COLORS.PRIMARY_CYAN,
     marginBottom: 4,
   },
   subtitle: {
-    fontSize: 12,
-    color: '#9fd6ff',
+    fontSize: FONT_SIZES.CAPTION,
+    color: COLORS.SECONDARY_CYAN,
   },
   listContent: {
     paddingHorizontal: 12,
@@ -137,7 +176,7 @@ const styles = StyleSheet.create({
     minHeight: 60,
   },
   countryCardExpanded: {
-    borderColor: '#00d4ff',
+    borderColor: COLORS.PRIMARY_CYAN,
     backgroundColor: '#1f2d5a',
   },
   countryCardPressed: {
@@ -150,7 +189,8 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     justifyContent: 'space-between',
   },
-  countryIcon: {
+  countryFlag: {
+    fontSize: 28,
     marginRight: 12,
   },
   countryName: {
@@ -161,7 +201,7 @@ const styles = StyleSheet.create({
   },
   expandIcon: {
     fontSize: 14,
-    color: '#00d4ff',
+    color: COLORS.PRIMARY_CYAN,
     fontWeight: 'bold',
   },
   countryDetails: {
@@ -177,15 +217,15 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
   },
   detailLabel: {
-    color: '#00d4ff',
+    color: COLORS.PRIMARY_CYAN,
     fontWeight: '600',
-    fontSize: 13,
+    fontSize: FONT_SIZES.CAPTION,
     marginRight: 8,
     minWidth: 80,
   },
   detailValue: {
     color: '#e0e0e0',
-    fontSize: 13,
+    fontSize: FONT_SIZES.CAPTION,
     flex: 1,
     lineHeight: 18,
   },
@@ -196,14 +236,14 @@ const styles = StyleSheet.create({
     borderTopColor: '#2a3a7a',
   },
   descriptionLabel: {
-    color: '#00d4ff',
+    color: COLORS.PRIMARY_CYAN,
     fontWeight: '600',
-    fontSize: 13,
+    fontSize: FONT_SIZES.CAPTION,
     marginBottom: 4,
   },
   descriptionValue: {
     color: '#b8c5e0',
-    fontSize: 12,
+    fontSize: FONT_SIZES.BODY,
     lineHeight: 16,
     fontStyle: 'italic',
   },

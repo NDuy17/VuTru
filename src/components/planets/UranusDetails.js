@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { memo } from 'react';
 import { View, Text, Pressable, ScrollView, StyleSheet, Platform } from 'react-native';
+import PropTypes from 'prop-types';
 
-const UranusDetails = ({ planet, onClose, showExploreButton, isExploreMode, onToggleExplore }) => (
+const UranusDetails = memo(({ planet, onClose, showExploreButton, isExploreMode, onToggleExplore }) => (
   <View style={styles.infoCard}>
     <View style={styles.header}>
       <Text style={styles.planetTitle}>{planet.emoji} {planet.name}</Text>
@@ -39,7 +40,18 @@ const UranusDetails = ({ planet, onClose, showExploreButton, isExploreMode, onTo
       <Text style={styles.backButtonText}>QUAY LẠI HỆ MẶT TRỜI</Text>
     </Pressable>
   </View>
-);
+));
+
+UranusDetails.displayName = 'UranusDetails';
+UranusDetails.propTypes = {
+  planet: PropTypes.shape({
+    id: PropTypes.number,
+    emoji: PropTypes.string,
+    name: PropTypes.string,
+    description: PropTypes.string,
+  }).isRequired,
+  onClose: PropTypes.func.isRequired,
+};
 
 const StatItem = ({ label, value }) => (
   <View style={styles.statItem}>
